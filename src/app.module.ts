@@ -5,6 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './users/user.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { CashbackModule } from './cashback/cashback.module';
+import { StripeModule } from './payements/stripe/stripe.module';
+import { PaypalModule } from './payements/paypal/paypal.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -28,6 +33,10 @@ import { UserModule } from './users/user.module';
     }),
     AuthModule,
     UserModule,// Importing the UserModule here
+    WebhookModule,
+    CashbackModule,
+    PaypalModule,// Importing the PaypalModule here
+    StripeModule, NotificationModule,// Importing the StripeModule here
 
   ],
   controllers: [AppController],

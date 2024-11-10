@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository,QueryFailedError } from 'typeorm';
 import { User , UserDTO } from './user.entity';
 import { plainToInstance } from 'class-transformer';
+import * as bcrypt from 'bcrypt';
+
 
 
 @Injectable()
@@ -24,25 +26,6 @@ export class UserService {
         return this.usersRepository.find({ where: params }); 
     }
 
-    // // Méthode pour trouver des utilisateurs avec QueryBuilder
-    // async findWithQueryBuilder(param1?: string, param2?: string): Promise<User[]> {
-    //     const query = this.usersRepository.createQueryBuilder('user');
-
-    //     if (param1) {
-    //         query.andWhere('user.param1 = :param1', { param1 });
-    //     }
-
-    //     if (param2) {
-    //         query.andWhere('user.param2 = :param2', { param2 });
-    //     }
-
-    //     return await query.getMany(); // Retourne un tableau d'utilisateurs correspondants
-    // }
-
-
-
-    
-
 
     // Méthode pour récupérer tous les utilisateurs
     async findAll() : Promise<UserDTO[]>{
@@ -62,24 +45,60 @@ export class UserService {
         return  await this.usersRepository.findOne({ where: params  });
     }
 
+    // Méthode pour trouver des utilisateurs en fonction de l'email
+    async getUserIdByEmail(email: string) {
+        const user = await this.findByEmail(email);
+        return  user.id;
+    }
+
+    // Méthode pour trouver un utilisateur par ID
     async findById(id: number): Promise<UserDTO> {
         const user = await this.usersRepository.findOneBy({ id }); // Find user by ID
         if (!user) {
             throw new NotFoundException(`User with ID ${id} not found`); // Throw an error if not found
         }
-       
+        
         return plainToInstance(UserDTO, user); // Return the found user entity Transform  to DTOs
+    }
+
+    // Méthode pour trouver des utilisateurs avec QueryBuilder
+    async findWithQueryBuilder(param: object): Promise<UserDTO[]> {
+        const query = this.usersRepository.createQueryBuilder('user');
+        
+        Object.entries(param).forEach(([key, value]) => { 
+            query.andWhere('user.'+key+' LIKE :value', { value : `%${value}%` });
+        });
+        // Recupère un tableau d'utilisateurs correspondants
+        const users =  await query.getMany(); 
+        return plainToInstance(UserDTO, users); // Transform entities to DTOs
+    }
+
+    // Méthode pour ajouter un utilisateur
+    async updateCashbackBalance(userId,amount){
+        try {
+            await this.usersRepository.increment({ id: userId }, 'cashbackBalance', amount);
+        } catch (error) {
+            // Check if the error is a QueryFailedError and contains a duplicate entry message
+            // if (error instanceof QueryFailedError && error.message.includes('duplicate key value violates unique constraint')) {
+            //     throw new UnprocessableEntityException('Email or username already exists'); // Return friendly error message
+            // }
+            throw new UnprocessableEntityException(error.message)
+        }
+
     }
 
 
     // Méthode pour ajouter un utilisateur
     async addUser(userData: Partial<User>) {
-    // async addUser(amount: number, transactionId: string, userId: number) {
-       
-        //add user to database
+        
+        //encrypt and update the received password
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        userData.password = hashedPassword ;
+
         const user = this.usersRepository.create(userData);
-        // const user = this.usersRepository.create({ amount, transactionId });
+
         try {
+            //save into database
             await this.usersRepository.save(user);
         } catch (error) {
             // Check if the error is a QueryFailedError and contains a duplicate entry message
@@ -87,7 +106,6 @@ export class UserService {
                 throw new UnprocessableEntityException('Email or username already exists'); // Return friendly error message
             }
             throw new UnprocessableEntityException(error.message)
-           
         }
        
         return plainToInstance(UserDTO, user);
@@ -95,7 +113,7 @@ export class UserService {
 
 
     // Méthode pour mettre à jour un utilisateur par ID
-     async updateUser(id: number, userData: Partial<User>): Promise<User> {
+    async updateUser(id: number, userData: Partial<User>): Promise<User> {
         // Recherche l'utilisateur par ID
         const user = await this.usersRepository.findOneBy({ id }); 
 
@@ -120,12 +138,5 @@ export class UserService {
             throw new NotFoundException(`User with ID ${id} not found`); 
         }
     }
-
-
-    // async handlePurchaseNotification(userId: number, transactionId: string, purchaseAmount: number) {
-    //     const cashbackAmount = purchaseAmount * 0.10; // Example cashback calculation (10%)
-        
-    //     return this.addCashback(cashbackAmount, transactionId, userId);
-    // }
 }
 

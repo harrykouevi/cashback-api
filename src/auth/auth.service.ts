@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable ,UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import * as bcrypt from 'bcrypt';
@@ -17,40 +17,37 @@ export class AuthService {
   
 
     async register(body : Partial<User>): Promise<Partial<User>>  {
-        const hashedPassword = await bcrypt.hash(body.password, 10);
-        body.password = hashedPassword ;
+        //check if email already exist
+        const existingUser = await this.userService.findByEmail(body.email);
+        if (existingUser) {
+            throw new BadRequestException('email already exists');
+        }
         // Méthode pour créer un nouvel utilisateur
         return this.userService.addUser(body); 
     }
 
-    async validateLogin(email: string, password: string): Promise<Partial<User>> {
+    async singnIn(email: string ,password:string): Promise<any> {
 
         const user = await this.userService.findByEmail(email);
-        if (user && await bcrypt.compare(password, user.password)) {
-            const { password, ...result } = user;
-            return result;
+        if (!user) {
+            throw new Error('Invalid credentials');
         }
-        return null;
+
+        const passcompaaison = await bcrypt.compare(password, user.password) ;
+        if (!passcompaaison) {
+            throw new UnauthorizedException();
+        }
+        console.log(user) ;
+
+    
+        const token = await this.generateAccessToken(user.id, user.user_type);
+        return  { accessToken: token, role: user.user_type} ;
     }
     
 
-    async login(user: Partial<User>) {
-        const payload = { email: user.email };
-        return {
-            access_token: this.jwtService.sign(payload),
-        };
-    }
-
-
-    async generateAccessToken2(merchantId: number) {
-        const payload = { merchantId };
-        return this.jwtService.sign(payload);
-    }
-
-    
     async generateAccessToken(userId: number, role: string) {
         const payload = { userId, role };
-        return this.jwtService.sign(payload);
+        return this.jwtService.signAsync(payload);
     }
 }
 
