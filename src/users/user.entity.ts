@@ -1,10 +1,16 @@
-import { IsNotEmpty , IsOptional , IsEnum , IsEmail, IsDate, IsDateString} from 'class-validator';
+import { IsNotEmpty , IsOptional , IsEnum , IsEmail, IsDate, IsDateString, Equals} from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
   CUSTOMER = 'customer',
   MERCHANT = 'merchant',
+  ADMINISTRATEUR = 'admin',
+}
+
+export enum Booli {
+  YES = 1,
+  NO = 0,
 }
 
 @Entity()
@@ -39,6 +45,12 @@ export class User {
 
   @Column({ nullable: true })
   address: string;
+
+  @Column({ 
+    default: Booli.NO,
+  })
+  is_active: number;
+
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
@@ -86,6 +98,66 @@ export class UserDTO {
   @IsNotEmpty() // Ensures the name field is not empty
   @IsEnum(UserRole)
   user_type : UserRole ;
+
+  @IsNotEmpty()
+  @IsDateString() // Ensures the date field is a date
+  date_of_birth: Date;
+
+  @IsOptional()
+  phone_number: string;
+
+  @IsOptional()
+  address: string;
+}
+
+//DTO class that defines the structure of data and includes validation rules for User creation.
+export class AdminUserDTO {
+  @IsNotEmpty() // Ensures the email field is not empty
+  @IsEmail() // Validates that the input is a valid email addres
+  email: string;
+
+  @IsNotEmpty()
+  @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
+  password: string; // Store hashed passwords
+
+  @IsNotEmpty() // Ensures the name field is not empty
+  name: string;
+
+  @IsNotEmpty() // Ensures the name field is not empty
+  @IsEnum(UserRole)
+  @Equals(UserRole['ADMINISTRATEUR'])
+  user_type : UserRole ;
+
+  @IsOptional()
+  @IsDateString() // Ensures the date field is a date
+  date_of_birth: Date;
+
+  @IsOptional()
+  phone_number: string;
+
+  @IsOptional()
+  address: string;
+}
+
+//DTO class that defines the structure of data and includes validation rules for User creation.
+export class ActivationUserDTO {
+  
+  @IsNotEmpty() // Ensures the name field is not empty
+  @IsEnum(Booli)
+  is_active: number ;
+}
+
+
+//DTO class that defines the structure of data and includes validation rules for User creation.
+export class UpdateUserDTO {
+  @IsNotEmpty() // Ensures the email field is not empty
+  @IsEmail() // Validates that the input is a valid email addres
+  email: string;
+
+
+
+  @IsNotEmpty() // Ensures the name field is not empty
+  name: string;
 
   @IsNotEmpty()
   @IsDateString() // Ensures the date field is a date

@@ -10,6 +10,7 @@ import { CashbackModule } from './cashback/cashback.module';
 import { StripeModule } from './payements/stripe/stripe.module';
 import { PaypalModule } from './payements/paypal/paypal.module';
 import { NotificationModule } from './notification/notification.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { NotificationModule } from './notification/notification.module';
     WebhookModule,
     CashbackModule,
     PaypalModule,// Importing the PaypalModule here
-    StripeModule, NotificationModule,// Importing the StripeModule here
+    StripeModule, NotificationModule, CategoriesModule,// Importing the StripeModule here
 
   ],
   controllers: [AppController],
