@@ -60,10 +60,10 @@ export class CategoriesController {
     @Patch(':id') // Endpoint pour mettre à jour une categorie par ID
     @UseGuards(JwtAuthGuard, RoleGuard) // Appliquer les guards d'authentification et de rôle
     @Roles('admin') // Spécifier que seul une categorie avec le rôle 'merchant' peut accéder à cette route
-    async updateCategory(@Param('id') id: number, @Body() userData:  CategoryDTO): Promise<any> {
+    async updateCategory(@Param('id') id: number, @Body() data:  CategoryDTO): Promise<any> {
         return {
             statusCode: HttpStatus.OK,
-            data: await  this.categoriesService.updateCategory(id, userData) // Appel à la méthode du service pour mettre à jour la categorie
+            data: await  this.categoriesService.updateCategory(id, data) // Appel à la méthode du service pour mettre à jour la categorie
         };
     }
 

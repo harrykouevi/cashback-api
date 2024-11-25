@@ -1,10 +1,8 @@
 import { Injectable , NotFoundException , UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository,QueryFailedError } from 'typeorm';
-import { Category , CategoryDTO } from './Category.entity';
+import { Category , CategoryDTO } from './category.entity';
 import { plainToInstance } from 'class-transformer';
-
-
 
 
 @Injectable()
