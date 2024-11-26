@@ -14,7 +14,7 @@ export class UserController {
 
     @Get()// Endpoint to get all user  (e.g., GET /users)
     @UseGuards(JwtAuthGuard, RoleGuard) // Appliquer les guards d'authentification et de rôle
-    @Roles('customer') // Spécifier que seul un utilisateur avec le rôle 'merchant' peut accéder à cette route
+    @Roles('merchant') // Spécifier que seul un utilisateur avec le rôle 'merchant' peut accéder à cette route
     async getUsers() : Promise<any> {
         
         return {
