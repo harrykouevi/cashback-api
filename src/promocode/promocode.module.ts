@@ -8,5 +8,6 @@ import { Promocode } from './promocode.entity';
   imports:[TypeOrmModule.forFeature([Promocode])],// AuthModule,
   providers: [PromocodeService],
   controllers: [PromocodeController],
+  exports: [PromocodeService],
 })
 export class PromocodeModule {}

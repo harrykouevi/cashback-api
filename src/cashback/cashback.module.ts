@@ -4,7 +4,6 @@ import { CashbackService } from './cashback.service';
 import { Cashback } from './cashback.entity';
 import { UserModule } from '../users/user.module';
 // import { CashbackController } from './cashback.controller'; // Optional if you have user management features.
-import { UserService } from '../users/user.service';
 
 
 

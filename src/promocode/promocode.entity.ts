@@ -1,7 +1,7 @@
 import { IsNotEmpty , IsOptional , IsEnum , IsDateString,IsNumber,Min,Max,IsString,MaxLength} from 'class-validator';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { Type } from 'class-transformer';
+import { Entity, Column, PrimaryGeneratedColumn,OneToMany } from 'typeorm';
 import { IsEndDateGreaterThanStartDate } from 'src/tools/validation/is-end-date-greater-than-start-date.decorator';
+import { Order } from 'src/order/Order.entity';
 
 export enum BOOL {
   YES = 1,
@@ -11,7 +11,7 @@ export enum BOOL {
 export const allowedAttributesForSearch = ['isActive']; // Define allowed attributes
         
 
-@Entity()
+@Entity({ name: 'promocodes' })
 export class Promocode {
   @PrimaryGeneratedColumn()
   id: number;
@@ -36,6 +36,8 @@ export class Promocode {
   })
   isActive: BOOL ;
 
+  @OneToMany(() => Order, (order) => order.promocode)
+  orders: Order[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
@@ -109,7 +111,7 @@ export class UpdatePromocodeDTO {
   discountpercentage: number;
 
   @IsOptional()
-  isActive: number;
+  isActive: BOOL ;
 
 }
 
@@ -118,7 +120,7 @@ export class StatePromocodeDTO {
   
   @IsNotEmpty() // Ensures the name field is not empty
   @IsEnum(BOOL)
-  status: BOOL ;
+  isActive: BOOL ;
 }
 
 

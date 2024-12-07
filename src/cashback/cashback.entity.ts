@@ -3,7 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 
 
-@Entity()
+@Entity({ name: 'users' })
 export class Cashback {
   @PrimaryGeneratedColumn()
   id: number;

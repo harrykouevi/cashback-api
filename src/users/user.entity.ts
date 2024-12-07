@@ -1,6 +1,7 @@
 import { IsNotEmpty , IsOptional , IsEnum , IsEmail, IsDate, IsDateString, Equals} from 'class-validator';
 import { Exclude } from 'class-transformer';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn ,OneToMany, JoinTable } from 'typeorm';
+import { Permission } from './permission.entity';
 
 export enum UserRole {
   CUSTOMER = 'customer',
@@ -13,7 +14,7 @@ export enum Booli {
   NO = 0,
 }
 
-@Entity()
+@Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -51,6 +52,11 @@ export class User {
   })
   is_active: number;
 
+  @OneToMany(() => Permission , permission => permission.user,{
+    cascade: true, // Automatically save permission when saving the user
+    onDelete: 'SET NULL', // Ensure permissions are not deleted when user is deleted
+  })
+  permissions : Permission[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;

@@ -33,8 +33,8 @@ export class AuthService {
             throw new Error('Invalid credentials');
         }
 
-        const passcompaaison = await bcrypt.compare(password, user.password) ;
-        if (!passcompaaison) {
+        const passcomparaison = await bcrypt.compare(password, user.password) ;
+        if (!passcomparaison) {
             throw new UnauthorizedException();
         }
         console.log(user) ;

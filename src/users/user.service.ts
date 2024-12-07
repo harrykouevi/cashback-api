@@ -1,9 +1,10 @@
 import { Injectable , NotFoundException , UnprocessableEntityException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository,QueryFailedError } from 'typeorm';
-import { User , UserDTO } from './user.entity';
+import { InjectRepository ,InjectConnection } from '@nestjs/typeorm';
+import { Repository,QueryFailedError , Connection } from 'typeorm';
+import { User , UserDTO, UserRole } from './user.entity';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
+import { Permission, rolePermissions } from './permission.entity';
 
 
 
@@ -11,8 +12,12 @@ import * as bcrypt from 'bcrypt';
 export class UserService { 
 
     constructor(
+        @InjectConnection() private readonly connection: Connection ,
         @InjectRepository(User)// Injection du repository pour l'entité User
         private usersRepository: Repository<User>,
+
+        @InjectRepository(Permission)// Injection du repository pour l'entité User
+        private permissionRepository: Repository<Permission>,
     ) {}
 
     // Méthode pour trouver des utilisateurs en fonction de deux paramètres
@@ -61,8 +66,21 @@ export class UserService {
         return plainToInstance(UserDTO, user); // Return the found user entity Transform  to DTOs
     }
 
+
+    // Méthode pour trouver un utilisateur par ID avec les permissions
+    async findOneWithPermissions(id: number): Promise<User> {
+        const user = await this.usersRepository.findOne({
+            where: { id },
+            relations: ['permissions'], // Charge également les permissions associés
+        });
+        if (!user) {
+            throw new NotFoundException(`user with ID ${id} not found`); // Throw an error if not found
+        }
+        return user; // Return the found user
+    }
+
     // Méthode pour trouver des utilisateurs avec QueryBuilder
-    async findWithQueryBuilder(param: object): Promise<UserDTO[]> {
+    async likeWithQueryBuilder(param: object): Promise<UserDTO[]> {
         const query = this.usersRepository.createQueryBuilder('user');
         
         Object.entries(param).forEach(([key, value]) => { 
@@ -95,20 +113,120 @@ export class UserService {
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         userData.password = hashedPassword ;
 
-        const user = this.usersRepository.create(userData);
+        // Assign permissions to the user
+        const permissionNames : string[] = this.getPermissionsForRoles(UserRole.ADMINISTRATEUR);
 
+        // Create the new user
+        const newUser  = this.usersRepository.create(userData);
+        let savedUser = await this.usersRepository.save(newUser );
+    
         try {
-            //save into database
-            await this.usersRepository.save(user);
+            if(savedUser.user_type == UserRole.ADMINISTRATEUR){
+                //save into database
+                savedUser = await this.assignPermissions(permissionNames,savedUser) ;
+            }
+            return plainToInstance(UserDTO, savedUser);
         } catch (error) {
             // Check if the error is a QueryFailedError and contains a duplicate entry message
             if (error instanceof QueryFailedError && error.message.includes('duplicate key value violates unique constraint')) {
                 throw new UnprocessableEntityException('Email or username already exists'); // Return friendly error message
             }
             throw new UnprocessableEntityException(error.message)
+        }   
+    }
+
+
+    // Method to assign permissions based on names
+    async assignPermissions(permissionNames: string[], user: User): Promise<User> {
+        // Recupère les permissions de base en fonction du rôles
+        const rolepermissions : string[] = this.getPermissionsForRoles(user.user_type);
+        const tabs: Permission[] = [];
+        if(user.permissions){ 
+            for (const p of user.permissions) {
+                tabs.push(p);
+            }
         }
+
+        for (const permis of permissionNames) {
+            if(Object.values(rolepermissions).includes( permis) ){ 
+
+                let permission = null ;
+                if(!user.permissions){ 
+                    //verify if user has this permission 'permis' registered in database
+                    let query = this.permissionRepository.createQueryBuilder('permissions');
+                    query = query.andWhere('permissions.userId = :value', { value : `%${user.id}%` }).andWhere('permissions.permission = :value', { value : `%${permis}%` });
+                    // Recupère la permission correspondante
+                    permission =  await query.getOne(); 
+                }else{
+                    
+                    //Si un user a déja des permissions Vérifiez si la permission  'permis' en fait parti
+                    const existingPermissionIndex = user.permissions.findIndex(item => item.permission === permis);
+                    if (existingPermissionIndex > -1) {
+                        // Si la permission existe déjà
+                        permission = user.permissions[existingPermissionIndex] 
+                    } 
+                }
+                  
+                if (!permission) {
+                    // If permission does not exist, create it
+                    const permissionn = this.permissionRepository.create({ 'permission': permis});
+                    await this.permissionRepository.save(permissionn);
+                    tabs.push(permissionn);
+                }
+            }
+        }
+
+        if(tabs.length != 0){
+            // Associate permissions with the user
+            user.permissions = tabs;
+            user = await this.usersRepository.save(user);
+        }
+        return  user ;
+    }
+
+
+    // Méthode pour attribuer une permission à un utilisateur
+    async assignPermissions_(userId: number, incomepermissions: string[]):  Promise<User> {
+        const user: User = await this.findOneWithPermissions(userId);
+        if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
+        if( !Object.values(UserRole).includes(user.user_type) ) throw new NotFoundException(`Unknown role : ${user.user_type} found`); // Throw an error if not found
+        if( UserRole.ADMINISTRATEUR !== user.user_type) throw new NotFoundException(`User with ID ${userId} is not admin`); // Throw an error if not admin
        
-        return plainToInstance(UserDTO, user);
+        const savedU = await this.assignPermissions(incomepermissions,user) ;
+        return savedU ;
+    }
+
+
+    // Méthode pour attribuer une permission à un utilisateur
+    async removePermissions(userId: number, incomepermissions: string[]):  Promise<User> {
+        const user: User = await this.findOneWithPermissions(userId);
+        if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
+        if( !Object.values(UserRole).includes(user.user_type) ) throw new NotFoundException(`Unknown role : ${user.user_type} found`); // Throw an error if not found
+        if( UserRole.ADMINISTRATEUR !== user.user_type) throw new NotFoundException(`User with ID ${userId} is not admin`); // Throw an error if not admin
+       
+
+        for (const permis of incomepermissions) {
+            // Find the index of the OrderItem that matches the productId
+            const itemIndex = user.permissions.findIndex(item => item.permission === permis)
+            if (itemIndex > -1) {
+                // Si la permission existe déjà
+                // Remove the OrderItem from the array
+                user.permissions.splice(itemIndex, 1)[0];
+            }
+        }
+        return await this.usersRepository.save(user);
+    }
+
+
+
+    // Méthode pour obtenir les permissions liés aux rôles
+    private getPermissionsForRoles(role: UserRole): string[] {
+            const ff = Object.values(UserRole) ;
+        if (!Object.values(UserRole).includes(role))  throw new NotFoundException(`Unknown role : ${role} not found`); // Throw an error if not found
+        const permissions: string[] = [];
+        permissions.push(...rolePermissions[role]);
+        
+        return [...new Set(permissions)]; // Éliminer les doublons
     }
 
 
@@ -127,15 +245,14 @@ export class UserService {
         return this.usersRepository.save(user); 
     }
 
-
+  
     // Méthode pour supprimer un utilisateur par ID
-    async deleteUser(id: number): Promise<void> {
+    async deleteUser(userId: number): Promise<void> {
         // Supprime l'utilisateur par ID
-        const result = await this.usersRepository.delete(id); 
-
+        const result = await this.usersRepository.delete(userId); 
         if (result.affected === 0) {
             // Lève une exception si l'utilisateur n'existe pas
-            throw new NotFoundException(`User with ID ${id} not found`); 
+            throw new NotFoundException(`User with ID ${userId} not found`); 
         }
     }
 }

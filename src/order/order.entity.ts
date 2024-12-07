@@ -1,20 +1,25 @@
-import { IsNotEmpty , IsOptional , IsEnum , IsDateString} from 'class-validator';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { IsNotEmpty , IsOptional , IsEnum , IsDateString, IsNumber} from 'class-validator';
+import { Entity, Column, PrimaryGeneratedColumn,ManyToOne ,ManyToMany, Index,JoinTable , OneToMany ,JoinColumn } from 'typeorm';
+import { Product } from '../product/product.entity';
+import { OrderItems } from './orderitem.entity';
+import { Promocode } from 'src/promocode/promocode.entity';
 
 export enum Status {
-  RUNNING = 'en traitement',
-  VALIDED = 'validé',
-  PAYED = 'payé',
-  GOESDELIVERY = 'en cours de livraison',
+  CANCELLED = 'CANCELLED',
+  PROCESSING = 'PROCESSING',
+  VALIDED = 'VALIDED',
+  PAYED = 'PAYED',
+  GOESDELIVERY = 'GOESDELIVERY',
 }
 
-@Entity()
+@Entity({ name: 'orders' })
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  userid: number;
+  userId: number;
+
 
   @Column()
   orderdate: Date;
@@ -22,11 +27,16 @@ export class Order {
   @Column({ default: 0 })
   total_amount: number;
 
-  @Column({ nullable: true })
-  promocodeid: number;
+  // @Index() // Ajout de l'index ici
+  // @Column({ nullable: true })
+  // promocodeId: number;
+
+  // @JoinColumn({ name: 'promocodeid', referencedColumnName: "id" }) // Personnalise le nom de la colonne dans la table Photo
+  @ManyToOne(() => Promocode, (promocode) => promocode.orders)
+  promocode: Promocode;
 
   @Column({ nullable: true })
-  promocode: string;
+  promocod: string;
 
   @Column({ default: 0 })
   discountpercentage: number;
@@ -37,9 +47,30 @@ export class Order {
   @Column({
     type: 'enum',
     enum: Status,
-    default: Status.RUNNING,
+    default: Status.PROCESSING,
   })
   status: Status ;
+
+
+  // @ManyToMany(() => Product) //, order => order.products
+  // @JoinTable({
+  //   name: 'orderitems', // Nom de la table de jointure
+  //   joinColumn: {
+  //       name: 'orderId', // Nom de la colonne pour la commande
+  //       referencedColumnName: 'id',
+  //   },
+  //   inverseJoinColumn: {
+  //       name: 'productId', // Nom de la colonne pour le produit
+  //       referencedColumnName: 'id',
+  //   },
+  // }) // Crée une table de jointure
+  // products: Product[];
+
+  @OneToMany(() => OrderItems , orderitem => orderitem.order,{
+    cascade: true, // Automatically save orderitem when saving the user
+    onDelete: 'CASCADE', // Ensure posts are deleted when order is deleted
+  })
+  orderitems : OrderItems[];
 
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -55,15 +86,41 @@ export class Order {
 //DTO class that defines the structure of data and includes validation rules for Order creation.
 export class OrderDTO {
   @IsNotEmpty() // Ensures the email field is not empty
-  userid: number;
+  userId: number;
 
   @IsNotEmpty()
   @IsDateString() // Ensures the date field is a date
   orderdate: Date;
 
-  @IsNotEmpty()
-  total_amount: number;
+  // @IsNotEmpty()
+  // total_amount: number;
 }
+
+export class GetOrderDTO {
+
+  @IsOptional()
+  @IsDateString() // Ensures the date field is a date
+  orderdate ?: Date;
+
+  @IsOptional()
+  userId ?: number;
+
+  @IsOptional()
+  @IsEnum(Status)
+  status ?: Status ;
+}
+
+export class UpdateOrderDTO {
+
+  @IsOptional()
+  @IsDateString() // Ensures the date field is a date
+  orderdate ?: Date;
+
+  @IsOptional()
+  userId ?: number;
+}
+
+
 
 //DTO class that defines the structure of data and includes validation rules for Order update status.
 export class StatusOrderDTO {

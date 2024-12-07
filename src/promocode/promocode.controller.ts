@@ -3,7 +3,7 @@ import { PromocodeService } from './promocode.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/guards/roles.decorator';
-import { GetPromocodeDTO , PromocodeDTO , UpdatePromocodeDTO } from './promocode.entity';
+import { GetPromocodeDTO , PromocodeDTO , StatePromocodeDTO, UpdatePromocodeDTO } from './promocode.entity';
 
 
 
@@ -30,7 +30,7 @@ export class PromocodeController {
         
         return {
             statusCode: HttpStatus.OK,
-            data: await this.promocodeService.findWithQueryBuilder(params) // Appel à la méthode du service pour effectuer la recherche
+            data: await this.promocodeService.likeWithQueryBuilder(params) // Appel à la méthode du service pour effectuer la recherche
         };
     }
 
@@ -65,6 +65,17 @@ export class PromocodeController {
         return {
             statusCode: HttpStatus.OK,
             data: await  this.promocodeService.updatePromocode(id, data) // Appel à la méthode du service pour mettre à jour la categorie
+        };
+    }
+
+    
+    @Patch(':id/activation')
+    @UseGuards(JwtAuthGuard, RoleGuard) // Appliquer les guards d'authentification et de rôle
+    @Roles('admin') // Spécifier que seul un product avec le rôle 'merchant' peut accéder à cette route
+    async activeProduct(@Param('id') id: number, @Body() body: StatePromocodeDTO): Promise<any> {
+        return {
+            statusCode: HttpStatus.OK,
+            data: await  this.promocodeService.updatePromocode(id,body) // Appel à la méthode du service pour mettre à jour l'utilisateur
         };
     }
 

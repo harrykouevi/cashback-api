@@ -29,7 +29,7 @@ export class CategoriesController {
     async searchCategories(@Query() params: object): Promise<any> {
         return {
             statusCode: HttpStatus.OK,
-            data: await this.categoriesService.findWithQueryBuilder(params) // Appel à la méthode du service pour effectuer la recherche
+            data: await this.categoriesService.likeWithQueryBuilder(params) // Appel à la méthode du service pour effectuer la recherche
         };
     }
 
@@ -41,7 +41,8 @@ export class CategoriesController {
     async getCategoryById(@Param('id') id: number): Promise<any> {
         return {
             statusCode: HttpStatus.OK,
-            data: await  this.categoriesService.findById(id) // Call the service method to find the user
+            // data: await  this.categoriesService.findById(id) // Call the service method to find the user
+            data: await  this.categoriesService.getCategoryHierarchy(id) // Call the service method to find the user
         };
         
     }
@@ -75,6 +76,11 @@ export class CategoriesController {
     async deleteCategory(@Param('id') id: number): Promise<void> {
         // Appel à la méthode du service pour supprimer la categorie
         return this.categoriesService.deleteCategory(id); 
+    }
+
+    @Get(':id/hierarchy')
+    async getCategoryHierarchy(@Param('id') id: string): Promise<Category> {
+        return this.categoriesService.getCategoryHierarchy(Number(id));
     }
 
 }

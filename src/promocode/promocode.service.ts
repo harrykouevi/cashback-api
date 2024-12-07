@@ -1,7 +1,7 @@
 import { Injectable , NotFoundException , UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository,QueryFailedError } from 'typeorm';
-import { Promocode , PromocodeDTO } from './promocode.entity';
+import { Promocode , PromocodeDTO, UpdatePromocodeDTO } from './promocode.entity';
 
 
 @Injectable()
@@ -41,12 +41,24 @@ export class PromocodeService {
         return promocode; // Return the found Promocode
     }
 
-    // Méthode pour trouver des codes promo  avec QueryBuilder
-    async findWithQueryBuilder(param: object): Promise<Promocode[]> {
+    // Méthode pour trouver des codes promo  avec 
+    //using QueryBuilder
+    async likeWithQueryBuilder(param: object): Promise<Promocode[]> {
         const query = this.promocodeRepository.createQueryBuilder('Promocode');
         
         Object.entries(param).forEach(([key, value]) => { 
             query.andWhere('promocode.'+key+' LIKE :value', { value : `%${value}%` });
+        });
+        // Recupère un tableau de codes promo  correspondants
+        const promocodes =  await query.getMany(); 
+        return promocodes; 
+    }
+
+    // Méthode pour trouver des codes promo  avec QueryBuilder
+    async findWithQueryBuilder(param: object): Promise<Promocode[]> {
+        const query = this.promocodeRepository.createQueryBuilder('Promocode');
+        Object.entries(param).forEach(([key, value]) => { 
+            query.andWhere('promocode.'+key+' = '+ value);
         });
         // Recupère un tableau de codes promo  correspondants
         const promocodes =  await query.getMany(); 
@@ -88,6 +100,8 @@ export class PromocodeService {
         // Sauvegarde les modifications dans la base de données
         return this.promocodeRepository.save(promocode); 
     }
+
+    
 
 
     // Méthode pour supprimer un code promo  par ID

@@ -6,11 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
+import { Permission } from 'src/users/permission.entity';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User,Permission]),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || 'yourSecretKey', // Change this to a strong secret key

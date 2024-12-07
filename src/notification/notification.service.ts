@@ -49,4 +49,9 @@ export class NotificationService {
             console.error(`Failed to send notification to ${email}:`, error);
         }
     }
+
+    sendErrorNotification(message: string) {
+        // Ici, vous pouvez intégrer un service d'envoi d'e-mails ou autre
+        console.log(`Notification: ${message}`);
+    }
 }
