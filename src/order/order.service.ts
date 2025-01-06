@@ -7,6 +7,7 @@ import { AddProductToOrderDTO, OrderItems } from './orderitem.entity';
 import { ProductService } from '../product/product.service'; // Import du service produit
 import { PromocodeService } from 'src/promocode/promocode.service';
 import { Promocode } from 'src/promocode/promocode.entity';
+import { CategoriesService } from 'src/categories/categories.service';
 
 
 // Service pour gérer le panier d'achats
@@ -22,8 +23,10 @@ export class OrderService {
 
         private readonly promocodeService : PromocodeService ,
 
-        private readonly productService: ProductService
-    ) {} // Injection du service produit
+        private readonly productService: ProductService ,// Injection du service produit
+
+        private readonly categoriesService : CategoriesService , // Injection du service category
+    ) {} 
 
 
     // Méthode pour ajouter un article au panier
@@ -31,15 +34,9 @@ export class OrderService {
         
         // Vérification si la commande existe
         const order = await this.findOneWithItems(orderId);
-        if (!order) {
-            throw new NotFoundException(`Commande avec ID ${orderId} non trouvé.`);
-        }
-
         // Vérifiez si le produit existe dans la base de données
         const product: Product = await this.productService.findById(orderitem.productId);
-        if (!product) {
-            throw new NotFoundException(`Product with ID ${orderitem.productId} not found`);
-        }
+        
         orderitem.priceatorder = product.price ;
         // Vérifiez si le produit existe déjà dans la commande
         const existingProductIndex = order.orderitems.findIndex(item => item.productId === product.id);
@@ -54,6 +51,7 @@ export class OrderService {
         // Mettez à jour le montant total de la commande
         const productPrice = product.price; // Récupérer le prix du produit
         order.total_amount += productPrice * orderitem.quantity;
+        order.definitive_amount =order.total_amount 
 
         return this.orderRepository.save(order);
     }
@@ -63,8 +61,8 @@ export class OrderService {
         
         // Vérification si la commande existe
         const order = await this.findById( orderId);
-        if (!order) {
-            throw new NotFoundException(`Commande avec ID ${orderId} non trouvé.`);
+        if (order.status !== Status.VALIDED) {
+            throw new NotFoundException(`Order with ID ${orderId} must be valided before.`);
         }
 
         // Vérifiez si le produit existe dans la base de données
@@ -76,7 +74,7 @@ export class OrderService {
        
         order.promocod =  code_ ;
         order.discountpercentage =   promocode.discountpercentage ;
-        
+
         order.definitive_amount = order.total_amount - (order.total_amount * promocode.discountpercentage / 100);
 
         return this.orderRepository.save(order);
@@ -87,10 +85,6 @@ export class OrderService {
     async removeProductFromOrder(orderId: number, productId: number): Promise<Order> {
 
         const order = await this.findOneWithItems(orderId );
-        if (!order) {
-            throw new NotFoundException(`Order with ID ${orderId} not found`);
-        }
-
         // Find the index of the OrderItem that matches the productId
         const orderItemIndex = order.orderitems.findIndex(item => item.productId === productId);
         if (orderItemIndex === -1) {
@@ -151,6 +145,19 @@ export class OrderService {
         return order; // Return the found order
     }
 
+
+     // Méthode pour trouver un produit  par ID
+     async findOneWithItemProducts(id: number): Promise<Order> {
+        const order = await this.orderRepository.findOne({
+            where: { id },
+            relations: ['orderitems.product'], // Charge également les produits associés
+        });
+        if (!order) {
+            throw new NotFoundException(`order with ID ${id} not found`); // Throw an error if not found
+        }
+        return order; // Return the found order
+    }
+
     // Méthode pour trouver des codes promo  avec QueryBuilder
     async likeWithQueryBuilder(param: object): Promise<Order[]> {
         const query = this.orderRepository.createQueryBuilder('Order');
@@ -185,7 +192,7 @@ export class OrderService {
     // Méthode pour mettre à jour les détails d'une commande  par ID
     async updateOrder(id: number, data: Partial<Order>): Promise<Order> {
         // Recherche la commande par ID
-        const order= await this.orderRepository.findOneBy({ id }); 
+        const order=  await this.findById(id); 
 
         if (!order) {
             // Lève une exception si la commande n'existe pas
@@ -199,16 +206,23 @@ export class OrderService {
 
     async cancelOrder(orderId: number): Promise<Order> {
         const order = await this.findById(orderId);
-
-        if (!order) {
-            throw new NotFoundException(`Order with ID ${orderId} not found`);
-        }
-
         // Mettre à jour le statut de la commande pour indiquer qu'elle est annulée
         Object.assign(order, {status:Status.CANCELLED});
 
         // Enregistrer les modifications dans la base de données
         return this.orderRepository.save(order);
+    }
+
+    async checkoutOrder(orderId: number): Promise<Order> {
+        const order = await this.findOneWithItemProducts(orderId);
+
+        await this.categoriesService.statisticUpdating(order) ;
+        // Mettre à jour le statut de la commande pour indiquer qu'elle est annulée
+        Object.assign(order, {status:Status.PAYED});
+
+        // Enregistrer les modifications dans la base de données
+        return this.orderRepository.save(order);
+
     }
 
     

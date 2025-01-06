@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable ,UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable ,UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import * as bcrypt from 'bcrypt';
@@ -16,14 +16,16 @@ export class AuthService {
 
   
 
-    async register(body : Partial<User>): Promise<Partial<User>>  {
+    async register(body : Partial<User>): Promise<any>  {
         //check if email already exist
         const existingUser = await this.userService.findByEmail(body.email);
         if (existingUser) {
             throw new BadRequestException('email already exists');
         }
-        // Méthode pour créer un nouvel utilisateur
-        return this.userService.addUser(body); 
+        return {
+            statusCode: HttpStatus.OK,
+            data: await this.userService.addUser(body)
+        };
     }
 
     async singnIn(email: string ,password:string): Promise<any> {
@@ -37,8 +39,7 @@ export class AuthService {
         if (!passcomparaison) {
             throw new UnauthorizedException();
         }
-        console.log(user) ;
-
+        
     
         const token = await this.generateAccessToken(user.id, user.user_type);
         return  { accessToken: token, role: user.user_type} ;

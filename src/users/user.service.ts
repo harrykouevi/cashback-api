@@ -247,13 +247,27 @@ export class UserService {
 
   
     // Méthode pour supprimer un utilisateur par ID
-    async deleteUser(userId: number): Promise<void> {
-        // Supprime l'utilisateur par ID
-        const result = await this.usersRepository.delete(userId); 
-        if (result.affected === 0) {
-            // Lève une exception si l'utilisateur n'existe pas
-            throw new NotFoundException(`User with ID ${userId} not found`); 
+    async deleteUser(userId: number): Promise<boolean> {
+        
+
+        try {
+            // Supprime l'utilisateur par ID
+            const result = await this.usersRepository.delete(userId);
+            if (!result) {
+                throw new NotFoundException(`User with ID ${userId} not found.`);
+            }
+            return true ; 
+        } catch (error) {
+            // Handle specific error types or log the error
+            // console.error('Error deleting user:', error);
+            if (error instanceof NotFoundException) {
+                throw error; // Rethrow if it's a known exception
+            }
+            // Optionally log unexpected errors
+            console.error('Error deleting user:', error);
+            throw new Error('Failed to delete user'); // Generic error message
         }
+        
     }
 }
 

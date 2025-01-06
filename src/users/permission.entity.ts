@@ -13,7 +13,10 @@ export class Permission {
   @Column()
   permission: string; // Nom de la permission sous forme de string
 
-  @ManyToOne(() => User, (user) => user.permissions ,{ nullable: true })
+  @ManyToOne(() => User, (user) => user.permissions ,{ nullable: true , 
+    cascade: true, // Automatically save permission when saving the user
+    onDelete: 'SET NULL', // Ensure permissions are not deleted when user is deleted
+  })
   user?: User;
 
   // @Column({ nullable: true })

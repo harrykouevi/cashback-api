@@ -1,4 +1,4 @@
-import { Injectable , NotFoundException , UnprocessableEntityException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable , NotFoundException , UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository,QueryFailedError } from 'typeorm';
 import { Product  , CreateProductDTO} from './product.entity';
@@ -15,6 +15,7 @@ export class ProductService {
   constructor(
       @InjectRepository(Product)// Injection du repository pour l'entité Product
       private  productRepository: Repository<Product>,
+      @Inject(forwardRef  (() => CategoriesService))
       private readonly  categoryService: CategoriesService,
   ) {}
 
@@ -90,9 +91,7 @@ export class ProductService {
     
     // Vérifiez si le produit existe dans la base de données
     const category: Category = await this.categoryService.findById(data.categoryId);
-    if (!category) {
-        throw new NotFoundException(`Category with ID ${data.categoryId} not found`);
-    }
+   
     const product = this.productRepository.create(data);
 
     try {

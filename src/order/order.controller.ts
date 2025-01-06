@@ -1,4 +1,4 @@
-import { Controller, Get, Post,Patch,Put, Delete, Param, Body, Query,  UseGuards , HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post,Patch,Put, Delete, Param, Body, Query,  UseGuards , HttpStatus, HttpCode } from '@nestjs/common';
 import { OrderService } from './order.service'; // Importation du service Commande
 import { AddProductToOrderDTO } from './orderitem.entity';
 import { GetOrderDTO, Order , OrderDTO, UpdateOrderDTO } from './Order.entity';
@@ -44,9 +44,10 @@ export class OrderController {
 
     
     @Post() // Endpoint to create new Order (admin exclusivelly)
+    @HttpCode(HttpStatus.CREATED)
     async createOrder(@Body() body: OrderDTO) {
         return {
-            statusCode: HttpStatus.OK,
+            statusCode: HttpStatus.CREATED,
             data: await  this.orderService.addOrder(body) // Appel à la méthode du service pour mettre à jour la categorie
         };
     }
@@ -78,6 +79,16 @@ export class OrderController {
         }
     }
 
+
+    @Patch(':id/checkout') // Utiliser PATCH pour annuler la commande
+    async checkoutOrder(@Param('id') id: number): Promise<any> {
+        return {
+            statusCode: HttpStatus.OK,
+            data:  await this.orderService.checkoutOrder(id),
+        }
+    }
+
+
     // Route pour ajouter un produit à la commande (Put /order/addproducts)
     @Put(':id/addproducts')
     async addToOrder(@Param('id') id: number, @Body() data:  AddProductToOrderDTO) : Promise<any>{
@@ -89,7 +100,7 @@ export class OrderController {
 
 
     // Route pour retirer un produit de la commande (DELETE /order/remove/:productId)
-    @Delete(':orderId/products/:productId')
+    @Put(':orderId/products/:productId')
     async removeOrder(@Param('orderId') orderId: number, @Param('productId') productId: number): Promise<any> {
         return {
             statusCode: HttpStatus.OK,

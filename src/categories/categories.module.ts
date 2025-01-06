@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bull';
 import Redis from 'ioredis';
 import { CategoryUpdateQueueProcessor } from './categories-update-queue.processor';
 import { NotificationService } from 'src/notification/notification.service';
+import { ProductModule } from 'src/product/product.module';
 
 
 @Module({

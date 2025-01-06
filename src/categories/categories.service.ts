@@ -1,4 +1,4 @@
-import { Injectable ,Inject, NotFoundException , UnprocessableEntityException } from '@nestjs/common';
+import { Injectable ,Inject, NotFoundException , UnprocessableEntityException, forwardRef } from '@nestjs/common';
 import { Queue } from 'bull'; // Importer Queue ici
 import { InjectQueue } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Category , CategoryDTO } from './category.entity';
 import { Product } from '../product/product.entity';
 // import { ProductSoldEvent } from '../tools/events/product-sold.event';
 import Redis from 'ioredis'; // Importation de la bibliothèque ioredis pour interagir avec Redis
+import { Order } from 'src/order/Order.entity';
 
 
 
@@ -20,6 +21,7 @@ export class CategoriesService {
         private readonly redisClient: Redis, // Injection du client Redis configuré dans le module
         @InjectQueue('category-update-queue') 
         private categoryUpdateQueue: Queue,
+
     ) {}
 
     // Méthode pour trouver dese categories en fonction de deux paramètres
@@ -131,20 +133,42 @@ export class CategoriesService {
     }
 
     // Méthode pour mettre à jour les attribut de statistique de categorie
-    async statisticUpdating(product:Product) {
-        // Invalidation du cache descategories pour garantir que les données soient à jour lors des prochaines requêtes
-        this.redisClient.del(`category_hierarchy_${product.category.id}`);
-        let currentCategory = product.category;
-        currentCategory.totalSold += product.price; // Ajouter le prix du produit au total vendu
+    async statisticUpdating(order:Order) {
+        console.log(order.orderitems) ;
+        for (const orderitem of order.orderitems) {
+            
+            const product = orderitem.product;
+            // Invalidation du cache descategories pour garantir que les données soient à jour lors des prochaines requêtes
+            this.redisClient.del(`category_hierarchy_${product.categoryId}`);
 
-        //mise en file d'attente pour des traitements suplémentaires
-        await this.categoryUpdateQueue.add(product,{
-            attempts: 5, // Nombre maximum de tentatives
-            backoff: 5000 // Délai de 5 secondes entre chaque tentative
-          });
+         
+            let currentCategory = await this.getCategoryHierarchy(product.categoryId);
+            const amount = orderitem.priceatorder * orderitem.quantity ;
+            currentCategory.totalSold += amount; // Ajouter le prix du produit au total vendu
+            const parentCategory = currentCategory.parentCategory ;
 
-        return await this.categoryRepository.save(currentCategory); // Sauvegarder les changements
+            //mise en file d'attente pour des traitements suplémentaires
+            this.categoryUpdateQueue.add({parentCategory,amount},{
+                attempts: 5, // Nombre maximum de tentatives
+                backoff: 5000 // Délai de 5 secondes entre chaque tentative
+            });
+
+            await this.categoryRepository.save(currentCategory); // Sauvegarder les changements
+        }
     }
+
+     // Méthode pour trouver une category par ID
+     async findOneWithProducts(id: number): Promise<Category> {
+        const category = await this.categoryRepository.findOne({
+            where: { id },
+            relations: ['products'], // Charge également les produits associés
+        });
+        if (!category) {
+            throw new NotFoundException(`category with ID ${id} not found`); // Throw an error if not found
+        }
+        return category; // Return the found category
+    }
+
 
     // async handleProductSold(event: ProductSoldEvent): Promise<void> {
     //     const product = await this.productService.findWithCategories(event.productId);

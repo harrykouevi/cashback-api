@@ -6,6 +6,7 @@ import { Queue } from 'bull';
 import { CategoriesService } from './categories.service';
 import { Product } from 'src/product/product.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { Category } from './category.entity';
 
 
 @Processor('category-update-queue')
@@ -18,17 +19,22 @@ export class CategoryUpdateQueueProcessor {
 
   @Process()
   async handle(job: Job) {
-    const product : Product = job.data;
-    let currentCategory = product.category.parentCategory;
+    const amount : number = job.data.amount;
+    let currentCategory : Category = job.data.parentCategory;
+ 
     try {
       while (currentCategory) {
-        currentCategory.totalSold += product.price; // Ajouter le prix du produit au total vendu
+        currentCategory.totalSold += amount; // Ajouter le prix du produit au total vendu
         // Sauvegarder les changements
         await this.categoryService.updateCategory(currentCategory.id,currentCategory); 
+        // currentCategory = currentCategory.parentCategory; // Passer à la catégorie parente
+        currentCategory = await this.categoryService.getCategoryHierarchy(currentCategory.id);
         currentCategory = currentCategory.parentCategory; // Passer à la catégorie parente
+
       }
      
-    } catch (error) {
+    }
+    catch (error) {
       // throw new UnprocessableEntityException(error.message)
       // Envoyer une notification en cas d'erreur
       // this.notificationService.sendErrorNotification(`Failed to process order for product ID ${orderData.productId}: ${error.message}`);

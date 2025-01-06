@@ -53,8 +53,8 @@ export class User {
   is_active: number;
 
   @OneToMany(() => Permission , permission => permission.user,{
-    cascade: true, // Automatically save permission when saving the user
-    onDelete: 'SET NULL', // Ensure permissions are not deleted when user is deleted
+    // cascade: true, // Automatically save permission when saving the user
+    // onDelete: 'SET NULL', // Ensure permissions are not deleted when user is deleted
   })
   permissions : Permission[];
 

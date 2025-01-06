@@ -1,4 +1,4 @@
-import { Controller, Get, Post,Patch,Put, Delete, Param, Body, Query,  UseGuards , HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post,Patch,Put, Delete, Param, Body, Query,  UseGuards , HttpStatus, HttpCode } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
 import { RoleGuard } from '../auth/guards/role.guard';
@@ -101,11 +101,12 @@ export class UserController {
     }
 
     @Delete(':id') // Endpoint pour supprimer un utilisateur par ID
+    @HttpCode(HttpStatus.NO_CONTENT) // Sets the response status to 204
     @UseGuards(RoleGuard) // Appliquer les guards d'authentification et de rôle
     @Roles('admin') // Spécifier que seul un utilisateur avec le rôle 'merchant' peut accéder à cette route
     async deleteUser(@Param('id') id: number): Promise<void> {
         // Appel à la méthode du service pour supprimer l'utilisateur
-        return this.userService.deleteUser(id); 
+        this.userService.deleteUser(id); 
     }
 
 }

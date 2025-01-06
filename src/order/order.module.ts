@@ -6,11 +6,12 @@ import { ProductModule } from '../product/product.module';
 import { Order } from './Order.entity';
 import { OrderItems } from './orderitem.entity';
 import { PromocodeModule } from 'src/promocode/promocode.module';
+import { CategoriesModule } from 'src/categories/categories.module';
 
 
 @Module({
   imports:[TypeOrmModule.forFeature([Order,OrderItems]),
-    ProductModule , PromocodeModule
+    ProductModule , PromocodeModule , CategoriesModule,
   ],
   controllers: [OrderController],
   providers: [OrderService]
