@@ -7,6 +7,7 @@ import { User } from '../users/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
 import { Permission } from 'src/users/permission.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 
 @Module({
@@ -19,7 +20,7 @@ import { Permission } from 'src/users/permission.entity';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService,] //,JwtAuthGuard
+  providers: [AuthService, UserService,NotificationService] //,JwtAuthGuard
   //exports: [JwtAuthGuard], // Exporting JwtAuthGuard for use in other modules
 })
 export class AuthModule {}

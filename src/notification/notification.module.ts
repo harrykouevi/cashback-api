@@ -12,13 +12,16 @@ import { join } from 'path';
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
         transport: {
-          host: config.get('MAIL_HOST'),
-          port: config.get('MAIL_PORT'),
+          host: 'smtp.gmail.com',
+          port: 587,
           secure: false, // true for 465, false for other ports
           auth: {
-            user: config.get('MAIL_USER'),
-            pass: config.get('MAIL_PASS'),
+            user: 'koueviharry@gmail.com',
+            pass: 'tykcretqzldpykos',
           },
+          tls: {
+            rejectUnauthorized: false,
+         },
         },
         defaults: {
           from: '"No Reply" <no-reply@example.com>',

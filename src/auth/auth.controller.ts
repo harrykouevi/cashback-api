@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Request, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Request, Query, UseGuards, NotFoundException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { User , UserDTO } from '../users/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
@@ -29,6 +29,21 @@ export class AuthController {
   @Get('profile') // Endpoint for loged users to get his profile
   async getProfile(@Request() req: any) {
     return this.userService.findById(req.user.userId);
+  }
+
+  // Route pour confirmer l'email via le token fourni dans la requête
+  @Get('confirm')
+  async confirmEmail(@Query('token') token: string) {
+      const user = await this.userService.validateToken(token); // Validation du token
+      
+      if (!user) {
+          throw new NotFoundException('Token invalide ou expiré'); // Lancer une exception si le token est invalide ou expiré
+      }
+
+      // Marquer l'utilisateur comme vérifié si le token est valide
+      await this.userService.confirmUser(user.id);
+      
+      return { message: 'Votre adresse email a été confirmée avec succès !' }; // Retourne un message de succès
   }
 }
 

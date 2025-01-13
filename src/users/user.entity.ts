@@ -50,7 +50,13 @@ export class User {
   @Column({ 
     default: Booli.NO,
   })
-  is_active: number;
+  isActive: number;
+
+  @Column({ nullable: true }) 
+  validationToken?: string; // Token de validation (peut être nul)
+
+  @Column({ default: false }) 
+  isVerified?: boolean; // Indique si l'utilisateur a confirmé son email (false par défaut)
 
   @OneToMany(() => Permission , permission => permission.user,{
     // cascade: true, // Automatically save permission when saving the user
@@ -150,7 +156,7 @@ export class ActivationUserDTO {
   
   @IsNotEmpty() // Ensures the name field is not empty
   @IsEnum(Booli)
-  is_active: number ;
+  isActive: number ;
 }
 
 

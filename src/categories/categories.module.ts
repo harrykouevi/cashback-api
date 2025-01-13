@@ -22,7 +22,8 @@ import { ProductModule } from 'src/product/product.module';
       useFactory: () => {
           return new Redis(); // Configurer Redis ici si nécessaire
       },
-  },],
+    },
+  ],
   controllers: [CategoriesController],
   exports: [CategoriesService], // Exporting the service to be used in other modules
 })

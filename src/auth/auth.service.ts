@@ -1,8 +1,9 @@
-import { BadRequestException, HttpStatus, Injectable ,UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable ,UnauthorizedException ,ForbiddenException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/user.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 
 
@@ -11,7 +12,10 @@ export class AuthService {
 
     constructor(
         private userService: UserService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,        
+        private readonly notificationService: NotificationService,
+        
+
     ) {}
 
   
@@ -33,6 +37,13 @@ export class AuthService {
         const user = await this.userService.findByEmail(email);
         if (!user) {
             throw new Error('Invalid credentials');
+        }
+
+        // Vérifiez si l'utilisateur a confirmé son email
+        if (!user.isVerified) {
+            // Envoyer un email de rappel pour confirmer l'adresse email
+            await this.notificationService.sendConfirmationLink(user.email, user.validationToken);
+            throw new ForbiddenException('Veuillez confirmer votre adresse email avant de vous connecter');
         }
 
         const passcomparaison = await bcrypt.compare(password, user.password) ;

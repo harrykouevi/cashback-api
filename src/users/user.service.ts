@@ -5,20 +5,37 @@ import { User , UserDTO, UserRole } from './user.entity';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Permission, rolePermissions } from './permission.entity';
+import { NotificationService } from '../notification/notification.service';
+import { randomBytes } from 'crypto';
 
-
+// import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UserService { 
 
     constructor(
-        @InjectConnection() private readonly connection: Connection ,
+        // @InjectConnection() private readonly connection: Connection ,
         @InjectRepository(User)// Injection du repository pour l'entité User
         private usersRepository: Repository<User>,
 
         @InjectRepository(Permission)// Injection du repository pour l'entité User
         private permissionRepository: Repository<Permission>,
+
+        private readonly notificationService: NotificationService,
+        
     ) {}
+
+     // Méthode pour générer un token aléatoire
+    private generateToken(): string {
+        return randomBytes(32).toString('hex');
+       // Génère un token aléatoire de 32 octets en hexadécimal
+    }
+
+     // Méthode pour sauvegarder le token de validation dans la base de données
+    async saveValidationToken(userId: number, token: string) {
+        await this.usersRepository.update(userId, { validationToken: token });
+    }
+
 
     // Méthode pour trouver des utilisateurs en fonction de deux paramètres
     async findByParams(param1?: string, param2?: string): Promise<User[]> {
@@ -105,7 +122,7 @@ export class UserService {
 
     }
 
-
+    
     // Méthode pour ajouter un utilisateur
     async addUser(userData: Partial<User>) {
         
@@ -118,13 +135,18 @@ export class UserService {
 
         // Create the new user
         const newUser  = this.usersRepository.create(userData);
+        newUser.validationToken = this.generateToken(); // Génération d'un token de validation
         let savedUser = await this.usersRepository.save(newUser );
+
+        
     
         try {
             if(savedUser.user_type == UserRole.ADMINISTRATEUR){
                 //save into database
                 savedUser = await this.assignPermissions(permissionNames,savedUser) ;
             }
+            // Envoi d'un email de confirmation
+            await this.notificationService.sendConfirmationLink(savedUser.email,newUser.validationToken) ;
             return plainToInstance(UserDTO, savedUser);
         } catch (error) {
             // Check if the error is a QueryFailedError and contains a duplicate entry message
@@ -268,6 +290,16 @@ export class UserService {
             throw new Error('Failed to delete user'); // Generic error message
         }
         
+    }
+
+     // Méthode pour valider le token lors de la confirmation de l'email
+     async validateToken(token: string): Promise<User | null> {
+        return await this.usersRepository.findOne({ where: { validationToken: token } }); // Recherche un utilisateur avec le token donné
+    }
+
+    // Méthode pour confirmer l'utilisateur après validation du token
+    async confirmUser(userId: number) {
+        await this.usersRepository.update(userId, { isVerified: true, validationToken: null }); // Marque l'utilisateur comme vérifié et supprime le token
     }
 }
 

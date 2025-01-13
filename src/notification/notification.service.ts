@@ -50,6 +50,50 @@ export class NotificationService {
         }
     }
 
+    async sendConfirmationLink(email: string, token: string) : Promise<void> {
+
+        const url = `http://localhost:3000/auth/confirm?token=${token}`;
+        const mailOptions = {
+                from: '"Votre Entreprise" <no-reply@yourcompany.com>', // Adresse de l'expéditeur
+                to: 'harry.kouevi@gmail.com', // Adresse email du destinataire
+                subject: 'Veuillez Valider Votre Inscription', // Ligne de sujet
+                text: `
+                    Bonjour,
+            
+                    Merci de vous être inscrit sur notre plateforme ! 
+            
+                    Pour finaliser votre inscription, veuillez cliquer sur le lien ci-dessous pour valider votre adresse email :
+            
+                    [${url}]
+
+                    Si le lien ne fonctionne pas, vous pouvez également le copier et le coller dans la barre d'adresse de votre navigateur.
+            
+                    Si vous n'avez pas créé de compte, ignorez simplement cet email.
+            
+                    Merci et à bientôt !
+            
+                    Cordialement,
+                    L'équipe de Votre Entreprise
+                `,
+                html: `
+                    <p>Bonjour,</p>
+                    <p>Merci de vous être inscrit sur notre plateforme !</p>
+                    <p>Pour finaliser votre inscription, veuillez cliquer sur le lien ci-dessous pour valider votre adresse email :</p>
+                    <p><a href="${url}" style="color: #4CAF50; text-decoration: none; font-weight: bold;">Valider mon adresse email</a> </p>
+                    <p>ou copier ceci ${url} Si le lien ne fonctionne pas, vous pouvez également le copier et le coller dans la barre d'adresse de votre navigateur.</p>
+                    <p>Si vous n'avez pas créé de compte, ignorez simplement cet email.</p>
+                    <p>Merci et à bientôt !</p>
+                    <p>Cordialement,<br>L'équipe de Votre Entreprise</p>
+                `,
+            };
+
+        try {
+            await this.mailerService.sendMail(mailOptions);
+            console.log(`Notification sent to ${email}`);
+        } catch (error) {
+            console.error(`Failed to send notification to ${email}:`, error);
+        }
+    }
     sendErrorNotification(message: string) {
         // Ici, vous pouvez intégrer un service d'envoi d'e-mails ou autre
         console.log(`Notification: ${message}`);
