@@ -1,7 +1,7 @@
 import { IsNotEmpty , IsOptional , IsEnum , IsDateString,IsNumber,Min,Max,IsString,MaxLength} from 'class-validator';
 import { Entity, Column, PrimaryGeneratedColumn,OneToMany } from 'typeorm';
 import { IsEndDateGreaterThanStartDate } from 'src/tools/validation/is-end-date-greater-than-start-date.decorator';
-import { Order } from 'src/order/Order.entity';
+import { Order } from 'src/order/order.entity';
 
 export enum BOOL {
   YES = 1,

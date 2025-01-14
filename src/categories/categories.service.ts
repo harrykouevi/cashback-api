@@ -7,7 +7,7 @@ import { Category , CategoryDTO } from './category.entity';
 import { Product } from '../product/product.entity';
 // import { ProductSoldEvent } from '../tools/events/product-sold.event';
 import Redis from 'ioredis'; // Importation de la bibliothèque ioredis pour interagir avec Redis
-import { Order } from 'src/order/Order.entity';
+import { Order } from 'src/order/order.entity';
 
 
 

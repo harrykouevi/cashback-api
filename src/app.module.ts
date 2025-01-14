@@ -21,7 +21,7 @@ import { PromocodeModule } from './promocode/promocode.module';
 // import { RedisModule } from '@nestjs-modules/ioredis';
 import { User } from './users/user.entity';
 import { Permission } from './users/permission.entity';
-import { Order } from './order/Order.entity';
+import { Order } from './order/order.entity';
 import { Promocode } from './promocode/promocode.entity';
 import { Product } from './product/product.entity';
 import { OrderItems } from './order/orderitem.entity';

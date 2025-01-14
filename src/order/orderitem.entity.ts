@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column ,JoinColumn } from 'typeorm';
 import { IsNotEmpty , IsOptional , IsNumber , IsDateString} from 'class-validator';
-import { Order } from './Order.entity';
+import { Order } from './order.entity';
 import { Product } from '../product/product.entity';
 
 @Entity({ name: 'orderitems' })
