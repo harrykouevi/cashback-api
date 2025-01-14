@@ -42,9 +42,9 @@ import { Category } from './categories/category.entity';
       // password: process.env.DB_PASS,
       // database: process.env.DB_NAME,
       //
-      username: 'root',
-      password: '',
-      database: 'cashback_dbd',
+      username: 'tnhkyfvj_mqusutaa_root',
+      password: 'pteZZpfvW@g5m8r',
+      database: 'tnhkyfvj_mqusutaa_cashback_dbd',
       entities: [User,Permission,Order,OrderItems,Promocode,Product,Category],
       // entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
