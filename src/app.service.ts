@@ -10,6 +10,6 @@ export class AppService {
       endpoints: [
          
       ]
-     }
+     } ;
   }
 }
