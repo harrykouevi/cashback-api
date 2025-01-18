@@ -47,7 +47,7 @@ import { Category } from './categories/category.entity';
       database: 'tnhkyfvj_mqusutaa_cashback_dbd',
       entities: [User,Permission,Order,OrderItems,Promocode,Product,Category],
       // entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: false,
     }),
     // RedisModule.forRoot({
     //   type: 'single', // Type de connexion (single ou cluster)
