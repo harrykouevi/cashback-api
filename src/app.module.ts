@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { typeOrmConfig } from './database/type-orm.config';
 import { BullModule } from '@nestjs/bull';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -42,9 +43,9 @@ import { Category } from './categories/category.entity';
       // password: process.env.DB_PASS,
       // database: process.env.DB_NAME,
       //
-      username: 'tnhkyfvj_root',
-      password: '#k7*eDbxvnEA2mB',
-      database: 'tnhkyfvj_mqusutaa_cashback_dbd',
+      username: 'root',
+      password: '',
+      database: 'cashback_dbd',
       entities: [User,Permission,Order,OrderItems,Promocode,Product,Category],
       // entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false,
