@@ -1,4 +1,4 @@
-import { IsNotEmpty , IsOptional , IsEnum , IsEmail, IsDate, IsDateString, Equals} from 'class-validator';
+import { IsNotEmpty , IsOptional , IsEnum , IsEmail, IsDate,MinLength, IsDateString,IsBoolean, Equals} from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { Entity, Column, PrimaryGeneratedColumn ,OneToMany, JoinTable } from 'typeorm';
 import { Permission } from './permission.entity';
@@ -23,10 +23,16 @@ export class User {
   email: string;
 
   @Column()
-  password: string; // Store hashed passwords
+  password: string; // Store hashed password
+
+  @Column()
+  name: string;
+
+  @Column({ nullable: true })
+  firstname: string;
 
   @Column({ unique: true })
-  name: string;
+  username: string;
 
   @Column({ default: 0 })
   cashback_account_balance: number;
@@ -77,6 +83,8 @@ export class registerBody {
   email: string;
   password: string; // Store hashed passwords
   name: string;
+  firstname: string;
+  username: string;
   cashback_account_balance: number;
 
   @Column({
@@ -93,16 +101,32 @@ export class registerBody {
 
 //DTO class that defines the structure of data and includes validation rules for User creation.
 export class UserDTO {
+
+  @IsOptional()
+  @IsBoolean()
+  is_test: boolean = false;
+
   @IsNotEmpty() // Ensures the email field is not empty
   @IsEmail() // Validates that the input is a valid email addres
   email: string;
 
   @IsNotEmpty()
+  @MinLength(6)
   @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
   password: string; // Store hashed passwords
 
+  @IsNotEmpty()
+  @MinLength(6)
+  confirm_password: string;
+
+  @IsNotEmpty() // Ensures the username field is not empty
+  username: string;
+
   @IsNotEmpty() // Ensures the name field is not empty
   name: string;
+
+  @IsOptional()
+  firstname: string;
 
   @IsOptional()
   cashback_account_balance: number;
@@ -131,6 +155,14 @@ export class AdminUserDTO {
   @IsNotEmpty()
   @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
   password: string; // Store hashed passwords
+
+  @IsNotEmpty()
+  @MinLength(6)
+  confirm_password: string;
+
+  @IsNotEmpty() // Ensures the username field is not empty
+  username: string;
+
 
   @IsNotEmpty() // Ensures the name field is not empty
   name: string;
@@ -165,11 +197,15 @@ export class UpdateUserDTO {
   @IsNotEmpty() // Ensures the email field is not empty
   @IsEmail() // Validates that the input is a valid email addres
   email: string;
-
-
-
-  @IsNotEmpty() // Ensures the name field is not empty
+  
+  @IsOptional()
   name: string;
+
+  @IsOptional()
+  firstname: string;
+
+  @IsNotEmpty() // Ensures the username field is not empty
+  username: string;
 
   @IsNotEmpty()
   @IsDateString() // Ensures the date field is a date

@@ -17,12 +17,12 @@ import { ProductModule } from 'src/product/product.module';
   ],
 
   providers: [CategoriesService , CategoryUpdateQueueProcessor , NotificationService,
-    {
-      provide: 'REDIS_CLIENT',
-      useFactory: () => {
-          return new Redis(); // Configurer Redis ici si nécessaire
-      },
-    },
+    // {
+    //   provide: 'REDIS_CLIENT',
+    //   useFactory: () => {
+    //       return new Redis(); // Configurer Redis ici si nécessaire
+    //   },
+    // },
   ],
   controllers: [CategoriesController],
   exports: [CategoriesService], // Exporting the service to be used in other modules

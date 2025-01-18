@@ -1,0 +1,3 @@
+      username: 'tnhkyfvj_root',
+      password: '#k7*eDbxvnEA2mB',
+      database: 'tnhkyfvj_mqusutaa_cashback_dbd',

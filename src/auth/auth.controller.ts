@@ -22,7 +22,7 @@ export class AuthController {
 
   @Post('login') // Endpoint for users to log in and receive a token
   async login(@Body() body: { email: string; password: string }) {
-    return this.authService.singnIn(body.email ,body.password) ;
+    return this.authService.logIn(body.email ,body.password) ;
   }
 
   @UseGuards(JwtAuthGuard)

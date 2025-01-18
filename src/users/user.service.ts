@@ -124,8 +124,11 @@ export class UserService {
 
     
     // Méthode pour ajouter un utilisateur
-    async addUser(userData: Partial<User>) {
+    async addUser(userData: Partial<UserDTO>) {
         
+        if (userData.password !== userData.confirm_password) {
+            throw new UnprocessableEntityException('The passwords do not match.');
+        }
         //encrypt and update the received password
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         userData.password = hashedPassword ;
@@ -134,9 +137,9 @@ export class UserService {
         const permissionNames : string[] = this.getPermissionsForRoles(UserRole.ADMINISTRATEUR);
 
         // Create the new user
-        const newUser  = this.usersRepository.create(userData);
-        newUser.validationToken = this.generateToken(); // Génération d'un token de validation
-        let savedUser = await this.usersRepository.save(newUser );
+        let savedUser  = this.usersRepository.create(userData);
+        // newUser.validationToken = this.generateToken(); // Génération d'un token de validation
+        // let savedUser = await this.usersRepository.save(newUser );
 
         
     
@@ -145,8 +148,7 @@ export class UserService {
                 //save into database
                 savedUser = await this.assignPermissions(permissionNames,savedUser) ;
             }
-            // Envoi d'un email de confirmation
-            await this.notificationService.sendConfirmationLink(savedUser.email,newUser.validationToken) ;
+           
             return plainToInstance(UserDTO, savedUser);
         } catch (error) {
             // Check if the error is a QueryFailedError and contains a duplicate entry message
@@ -155,6 +157,14 @@ export class UserService {
             }
             throw new UnprocessableEntityException(error.message)
         }   
+    }
+
+    async addUserGeneratedToken(user: Partial<User>): Promise<string>  {
+ 
+         Object.assign(user, {'validationToken':this.generateToken()}); // Met à jour les propriétés de l'utilisateur avec les nouvelles données
+         // Sauvegarde les modifications dans la base de données
+        await this.usersRepository.save(user); 
+        return user.validationToken;
     }
 
 

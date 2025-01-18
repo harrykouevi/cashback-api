@@ -2,7 +2,7 @@ import { BadRequestException, HttpStatus, Injectable ,UnauthorizedException ,For
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/user.entity';
+import { User, UserDTO, UserRole } from '../users/user.entity';
 import { NotificationService } from 'src/notification/notification.service';
 
 
@@ -20,29 +20,36 @@ export class AuthService {
 
   
 
-    async register(body : Partial<User>): Promise<any>  {
+    async register(body : Partial<UserDTO>): Promise<any>  {
+       
         //check if email already exist
         const existingUser = await this.userService.findByEmail(body.email);
         if (existingUser) {
             throw new BadRequestException('email already exists');
         }
+        
+        let user = await this.userService.addUser(body)
+        const validationToken  = await this.userService.addUserGeneratedToken(user);
+        // Envoi d'un email de confirmation
+        await this.notificationService.sendConfirmationLink(user, validationToken,body.is_test) ;
+      
         return {
             statusCode: HttpStatus.OK,
-            data: await this.userService.addUser(body)
+            data:  user
         };
     }
 
-    async singnIn(email: string ,password:string): Promise<any> {
+    async logIn(email: string ,password:string): Promise<any> {
 
         const user = await this.userService.findByEmail(email);
         if (!user) {
-            throw new Error('Invalid credentials');
+            throw new Error('Invalid credentials....');
         }
 
         // Vérifiez si l'utilisateur a confirmé son email
-        if (!user.isVerified) {
+        if (!user.isVerified && user.user_type  !== UserRole.ADMINISTRATEUR ) {
             // Envoyer un email de rappel pour confirmer l'adresse email
-            await this.notificationService.sendConfirmationLink(user.email, user.validationToken);
+            // await this.notificationService.sendConfirmationLink(user, user.validationToken);
             throw new ForbiddenException('Veuillez confirmer votre adresse email avant de vous connecter');
         }
 

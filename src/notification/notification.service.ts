@@ -3,6 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { MailerService } from '@nestjs-modules/mailer';
+import { User, UserDTO } from 'src/users/user.entity';
 
 @Injectable()
 export class NotificationService {
@@ -50,12 +51,13 @@ export class NotificationService {
         }
     }
 
-    async sendConfirmationLink(email: string, token: string) : Promise<void> {
-
+    async sendConfirmationLink(user: UserDTO, token: string , is_test:boolean) : Promise<void> {
+       
+        const email = is_test ? 'harry.kouevi@gmail.com' : user.email ;
         const url = `http://localhost:3000/auth/confirm?token=${token}`;
         const mailOptions = {
                 from: '"Votre Entreprise" <no-reply@yourcompany.com>', // Adresse de l'expéditeur
-                to: 'harry.kouevi@gmail.com', // Adresse email du destinataire
+                to: email  , // Adresse email du destinataire
                 subject: 'Veuillez Valider Votre Inscription', // Ligne de sujet
                 text: `
                     Bonjour,
@@ -89,9 +91,9 @@ export class NotificationService {
 
         try {
             await this.mailerService.sendMail(mailOptions);
-            console.log(`Notification sent to ${email}`);
+            console.log(`Notification sent to ${email }`);
         } catch (error) {
-            console.error(`Failed to send notification to ${email}:`, error);
+            console.error(`Failed to send notification to ${email }:`, error);
         }
     }
     sendErrorNotification(message: string) {

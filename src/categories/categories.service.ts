@@ -6,7 +6,7 @@ import { Repository,QueryFailedError } from 'typeorm';
 import { Category , CategoryDTO } from './category.entity';
 import { Product } from '../product/product.entity';
 // import { ProductSoldEvent } from '../tools/events/product-sold.event';
-import Redis from 'ioredis'; // Importation de la bibliothèque ioredis pour interagir avec Redis
+// import Redis from 'ioredis'; // Importation de la bibliothèque ioredis pour interagir avec Redis
 import { Order } from 'src/order/order.entity';
 
 
@@ -17,10 +17,10 @@ export class CategoriesService {
     constructor(
         @InjectRepository(Category)// Injection du repository pour l'entité Category
         private categoryRepository: Repository<Category>,
-        @Inject('REDIS_CLIENT') 
-        private readonly redisClient: Redis, // Injection du client Redis configuré dans le module
-        @InjectQueue('category-update-queue') 
-        private categoryUpdateQueue: Queue,
+        // @Inject('REDIS_CLIENT') 
+        // private readonly redisClient: Redis, // Injection du client Redis configuré dans le module
+        // @InjectQueue('category-update-queue') 
+        // private categoryUpdateQueue: Queue,
 
     ) {}
 
@@ -110,15 +110,15 @@ export class CategoriesService {
 
     // Méthode pour récupérer tous les categories et leur hierarchie complète
     async getCategoryHierarchy(id: number): Promise<Category> {
-        this.redisClient.del(`category_hierarchy_${id}`);
+        // this.redisClient.del(`category_hierarchy_${id}`);
 
         // Définition d'une clé unique pour le cache basée sur l'ID de la catégorie
-        const cacheKey = `category_hierarchy_${id}`; 
-        // Vérifier si les données sont déjà présentes dans le cache Redis
-        const cachedResult = await this.redisClient.get(cacheKey);
-        if (cachedResult) {
-            return JSON.parse(cachedResult); // Si les données sont en cache, les retourner après les avoir analysées en JSON
-        }
+        // const cacheKey = `category_hierarchy_${id}`; 
+        // // Vérifier si les données sont déjà présentes dans le cache Redis
+        // const cachedResult = await this.redisClient.get(cacheKey);
+        // if (cachedResult) {
+        //     return JSON.parse(cachedResult); // Si les données sont en cache, les retourner après les avoir analysées en JSON
+        // }
         // Si les données ne sont pas en cache, récupérer la catégorie depuis la base de données
         const category = await this.categoryRepository.findOne({
           where: { id: id },
@@ -127,7 +127,7 @@ export class CategoriesService {
         
         if (category) {
             // Mettre en cache le résultat dans Redis avec une expiration d'une heure (3600 secondes)
-            await this.redisClient.set(cacheKey, JSON.stringify(category), 'EX', 3600);
+            // await this.redisClient.set(cacheKey, JSON.stringify(category), 'EX', 3600);
         }
         return category;
     }
@@ -139,7 +139,7 @@ export class CategoriesService {
             
             const product = orderitem.product;
             // Invalidation du cache descategories pour garantir que les données soient à jour lors des prochaines requêtes
-            this.redisClient.del(`category_hierarchy_${product.categoryId}`);
+            // this.redisClient.del(`category_hierarchy_${product.categoryId}`);
 
          
             let currentCategory = await this.getCategoryHierarchy(product.categoryId);
@@ -148,10 +148,10 @@ export class CategoriesService {
             const parentCategory = currentCategory.parentCategory ;
 
             //mise en file d'attente pour des traitements suplémentaires
-            this.categoryUpdateQueue.add({parentCategory,amount},{
-                attempts: 5, // Nombre maximum de tentatives
-                backoff: 5000 // Délai de 5 secondes entre chaque tentative
-            });
+            // this.categoryUpdateQueue.add({parentCategory,amount},{
+            //     attempts: 5, // Nombre maximum de tentatives
+            //     backoff: 5000 // Délai de 5 secondes entre chaque tentative
+            // });
 
             await this.categoryRepository.save(currentCategory); // Sauvegarder les changements
         }
