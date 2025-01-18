@@ -1,4 +1,4 @@
-// import { DataSource } from 'typeorm';
+import { DataSource } from 'typeorm';
 // import { User } from './users/user.entity'; // Import your entities
 // import { Permission } from './users/permission.entity';
 // import { Transaction } from './src/transaction/transaction.entity';
