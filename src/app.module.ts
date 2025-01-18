@@ -36,21 +36,7 @@ import { Category } from './categories/category.entity';
     ConfigModule.forRoot({
       isGlobal: true, // Makes the config globally available
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      // username: process.env.DB_USER,
-      // password: process.env.DB_PASS,
-      // database: process.env.DB_NAME,
-      //
-      username: 'root',
-      password: '',
-      database: 'cashback_dbd',
-      entities: [User,Permission,Order,OrderItem,Promocode,Product,Category],
-      // entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
-    }),
+    TypeOrmModule.forRoot(dataSourceOptions),
     // RedisModule.forRoot({
     //   type: 'single', // Type de connexion (single ou cluster)
     //   url: 'redis://localhost:6379', // URL de votre serveur Redis

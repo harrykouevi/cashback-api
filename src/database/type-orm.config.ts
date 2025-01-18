@@ -13,10 +13,10 @@ export const dataSourceOptions: DataSourceOptions = {
     type: 'mysql', // or your database type (mysql, sqlite, etc.)
     host: 'localhost',
     port: 3306,
-    username: 'root',
-    password: '',
-    database: 'cashback_dbd',
-    migrations: ['src/database/migrations/**/*{.ts,.js}'],
+    username: 'tnhkyfvj_root',
+    password: '#k7*eDbxvnEA2mB',
+    database: 'tnhkyfvj_mqusutaa_cashback_dbd',
+    migrations: [__dirname + '/../database/migrations/**/*{.ts,.js}'],
     entities: [User,Permission,Order,OrderItem,Promocode,Product,Category],
     // migrations: ['dist/db/migrations/*.js'], // Path to compiled migration files
     synchronize: false, // Disable auto-sync in production
