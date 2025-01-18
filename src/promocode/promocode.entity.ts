@@ -1,7 +1,7 @@
 import { IsNotEmpty , IsOptional , IsEnum , IsDateString,IsNumber,Min,Max,IsString,MaxLength} from 'class-validator';
 import { Entity, Column, PrimaryGeneratedColumn,OneToMany } from 'typeorm';
-import { IsEndDateGreaterThanStartDate } from 'src/tools/validation/is-end-date-greater-than-start-date.decorator';
-import { Order } from 'src/order/order.entity';
+import { IsEndDateGreaterThanStartDate } from '../tools/validation/is-end-date-greater-than-start-date.decorator';
+import { Order } from '../order/order.entity';
 
 export enum BOOL {
   YES = 1,
@@ -36,7 +36,7 @@ export class Promocode {
   })
   isActive: BOOL ;
 
-  @OneToMany(() => Order, (order) => order.promocode)
+  @OneToMany(() => Order, (order) => order)
   orders: Order[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

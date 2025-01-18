@@ -3,7 +3,8 @@ import { Repository,QueryFailedError } from 'typeorm';
 import { Injectable, NotFoundException, BadRequestException , UnprocessableEntityException} from '@nestjs/common';
 import { Order, Status } from './order.entity';
 import { Product } from '../product/product.entity';
-import { AddProductToOrderDTO, OrderItems } from './orderitem.entity';
+import { AddProductToOrderDTO, OrderItem } from '../order/orderitem.entity';
+// import { AddProductToOrderDTO, OrderItem } from '../orderitem/orderitem.entity';
 import { ProductService } from '../product/product.service'; // Import du service produit
 import { PromocodeService } from 'src/promocode/promocode.service';
 import { Promocode } from 'src/promocode/promocode.entity';
@@ -18,8 +19,8 @@ export class OrderService {
         @InjectRepository(Order)// Injection du repository pour l'entité Order
         private orderRepository: Repository<Order>,
 
-        @InjectRepository(OrderItems)// Injection du repository pour l'entité OrderItems
-        private orderitemsRepository: Repository<OrderItems>,
+        @InjectRepository(OrderItem)// Injection du repository pour l'entité OrderItem
+        private orderitemsRepository: Repository<OrderItem>,
 
         private readonly promocodeService : PromocodeService ,
 
@@ -30,7 +31,7 @@ export class OrderService {
 
 
     // Méthode pour ajouter un article au panier
-    async addProductToOrder(orderId: number, orderitem : Partial<OrderItems>): Promise<Order> {
+    async addProductToOrder(orderId: number, orderitem : Partial<OrderItem>): Promise<Order> {
         
         // Vérification si la commande existe
         const order = await this.findOneWithItems(orderId);
@@ -88,7 +89,7 @@ export class OrderService {
         // Find the index of the OrderItem that matches the productId
         const orderItemIndex = order.orderitems.findIndex(item => item.productId === productId);
         if (orderItemIndex === -1) {
-            throw new NotFoundException(`OrderItems with product ID ${productId} not found in order`);
+            throw new NotFoundException(`OrderItem with product ID ${productId} not found in order`);
         }
 
         // Remove the OrderItem from the array

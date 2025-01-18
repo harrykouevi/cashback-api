@@ -4,7 +4,7 @@ import { Order } from './order.entity';
 import { Product } from '../product/product.entity';
 
 @Entity({ name: 'orderitems' })
-export class OrderItems {
+export class OrderItem {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -19,7 +19,7 @@ export class OrderItems {
     order: Order;
 
     @JoinColumn({ name: 'productId', referencedColumnName: "id" }) // Personnalise le nom de la colonne dans la table Photo
-    @ManyToOne(() => Product, product => product.orderitems)
+    @ManyToOne(() => Product, product => product.orderitems, { lazy: true })
     product: Product;
 
     @Column()

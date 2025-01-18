@@ -1,7 +1,8 @@
 import { IsNotEmpty , IsOptional , IsEnum , IsDateString, IsNumber} from 'class-validator';
 import { Entity, Column, PrimaryGeneratedColumn,ManyToOne ,ManyToMany, Index,JoinTable , OneToMany ,JoinColumn } from 'typeorm';
 import { Product } from '../product/product.entity';
-import { OrderItems } from './orderitem.entity';
+// // import { OrderItem } from '../orderitem/orderitem.entity';
+import { OrderItem } from '../order/orderitem.entity';
 import { Promocode } from 'src/promocode/promocode.entity';
 
 export enum Status {
@@ -32,8 +33,8 @@ export class Order {
   // promocodeId: number;
 
   // @JoinColumn({ name: 'promocodeid', referencedColumnName: "id" }) // Personnalise le nom de la colonne dans la table Photo
-  @ManyToOne(() => Promocode, (promocode) => promocode.orders)
-  promocode: Promocode;
+  // @ManyToOne(() => Promocode, (promocode) => promocode.orders)
+  // promocode: Promocode;
 
   @Column({ nullable: true })
   promocod: string;
@@ -66,11 +67,11 @@ export class Order {
   // }) // Crée une table de jointure
   // products: Product[];
 
-  @OneToMany(() => OrderItems , orderitem => orderitem.order,{
+  @OneToMany(() => OrderItem , orderitem => orderitem.order,{
     cascade: true, // Automatically save orderitem when saving the user
     onDelete: 'CASCADE', // Ensure posts are deleted when order is deleted
   })
-  orderitems : OrderItems[];
+  orderitems : OrderItem[];
 
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

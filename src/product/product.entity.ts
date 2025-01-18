@@ -1,7 +1,8 @@
 import { IsNotEmpty , IsOptional , IsEnum , IsDateString,IsNumber,Min,Max,IsString,MaxLength} from 'class-validator';
 import { Entity, Column, PrimaryGeneratedColumn ,ManyToOne, OneToMany,Index ,JoinColumn } from 'typeorm';
 import { Category } from '../categories/category.entity';
-import { OrderItems } from 'src/order/orderitem.entity';
+// import { OrderItem } from '../orderitem/orderitem.entity';
+import { OrderItem } from '../order/orderitem.entity';
 // import { Merchant } from 'src/merchants/merchant.entity';
 
 export enum BOOL {
@@ -47,8 +48,8 @@ export class Product {
   })
   isActivated: BOOL ;
 
-  @OneToMany(() => OrderItems, orderItem => orderItem.product)
-  orderitems: OrderItems[]; // Now holds references to OrderItems
+  @OneToMany(() => OrderItem, orderItem => orderItem.product, { lazy: true })
+  orderitems: OrderItem[]; // Now holds references to OrderItem
 
  
 }

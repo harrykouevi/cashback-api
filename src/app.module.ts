@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './database/type-orm.config';
+import { dataSourceOptions } from './database/type-orm.config';
 import { BullModule } from '@nestjs/bull';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -25,7 +25,8 @@ import { Permission } from './users/permission.entity';
 import { Order } from './order/order.entity';
 import { Promocode } from './promocode/promocode.entity';
 import { Product } from './product/product.entity';
-import { OrderItems } from './order/orderitem.entity';
+import { OrderItem } from './order/orderitem.entity';
+// import { OrderItem } from './orderitem/orderitem.entity';
 import { Category } from './categories/category.entity';
 
 
@@ -46,7 +47,7 @@ import { Category } from './categories/category.entity';
       username: 'root',
       password: '',
       database: 'cashback_dbd',
-      entities: [User,Permission,Order,OrderItems,Promocode,Product,Category],
+      entities: [User,Permission,Order,OrderItem,Promocode,Product,Category],
       // entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false,
     }),

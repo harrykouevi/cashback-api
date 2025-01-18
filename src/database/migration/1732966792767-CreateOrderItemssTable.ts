@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 
-export class CreateOrderItemssTable1732966792767 implements MigrationInterface {
-    name = 'CreateOrderItemssTable1732966792767'
+export class CreateOrderItemsTable1732966792767 implements MigrationInterface {
+    name = 'CreateOrderItemsTable1732966792767'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(
