@@ -20,14 +20,6 @@ import { ProductModule } from './product/product.module';
 // import { RedisModule } from '@nestjs/redis'; // Importation du module Redis
 import { PromocodeModule } from './promocode/promocode.module';
 // import { RedisModule } from '@nestjs-modules/ioredis';
-import { User } from './users/user.entity';
-import { Permission } from './users/permission.entity';
-import { Order } from './order/order.entity';
-import { Promocode } from './promocode/promocode.entity';
-import { Product } from './product/product.entity';
-import { OrderItem } from './order/orderitem.entity';
-// import { OrderItem } from './orderitem/orderitem.entity';
-import { Category } from './categories/category.entity';
 
 
 

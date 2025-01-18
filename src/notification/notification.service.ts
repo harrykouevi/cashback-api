@@ -1,7 +1,7 @@
 // src/notification/notification.service.ts
 
 import { Injectable } from '@nestjs/common';
-import nodemailer from 'nodemailer';
+import { AppSource } from 'src/data-source';
 import { MailerService } from '@nestjs-modules/mailer';
 import { User, UserDTO } from 'src/users/user.entity';
 
@@ -54,9 +54,9 @@ export class NotificationService {
     async sendConfirmationLink(user: UserDTO, token: string , is_test:boolean) : Promise<void> {
        
         const email = is_test ? 'harry.kouevi@gmail.com' : user.email ;
-        const url = `http://localhost:3000/auth/confirm?token=${token}`;
+        const url = `${AppSource.domain_url}/auth/confirm?token=${token}`;
         const mailOptions = {
-                from: '"Votre Entreprise" <no-reply@yourcompany.com>', // Adresse de l'expéditeur
+                from:  `"${AppSource.company}" <no-reply@yourcompany.com> `, // Adresse de l'expéditeur
                 to: email  , // Adresse email du destinataire
                 subject: 'Veuillez Valider Votre Inscription', // Ligne de sujet
                 text: `
