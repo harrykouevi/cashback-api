@@ -6,15 +6,16 @@ export class CreatMerchantsTable1737317603861 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
       
-      const table = await queryRunner.getTable("users");
-      let columnExists = table?.columns.find(column => column.name === "merchantId");
+      // const table = await queryRunner.getTable("users");
+      // let columnExists = table?.columns.find(column => column.name === "merchantId");
 
-      await queryRunner.query(`ALTER TABLE users DROP FOREIGN KEY FK_af94df2e060180b6043d5e45042;`);
+      // await queryRunner.query(`ALTER TABLE users DROP FOREIGN KEY FK_af94df2e060180b6043d5e45042;`);
 
-      // Step 2: Drop the merchantId column
-      await queryRunner.query(`ALTER TABLE users DROP COLUMN merchantId;`);
+      // // Step 2: Drop the merchantId column
+      // await queryRunner.query(`ALTER TABLE users DROP COLUMN merchantId;`);
 
-      await queryRunner.dropTable('merchants');
+      // await queryRunner.dropTable('merchants');
+
       await queryRunner.createTable(
           new Table({
             name: 'merchants',
