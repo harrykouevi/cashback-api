@@ -2,4 +2,5 @@
       password: '#k7*eDbxvnEA2mB',
       database: 'tnhkyfvj_mqusutaa_cashback_dbd',
 
-       //  "migration:run": "npm run typeorm migration:run -- -d  ./dist/db/type-orm.config.js",
+      "migration:run": "npm run typeorm migration:run -- -d ./dist/database/type-orm.config.js",
+   

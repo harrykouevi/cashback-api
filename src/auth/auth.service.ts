@@ -1,8 +1,8 @@
-import { BadRequestException, HttpStatus, Injectable ,UnauthorizedException ,ForbiddenException} from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable ,UnauthorizedException ,ForbiddenException, UnprocessableEntityException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import * as bcrypt from 'bcrypt';
-import { User, UserDTO, UserRole } from '../users/user.entity';
+import { AddPasswordDTO, User, UserDTO, UserMerchantDTO, UserRole } from '../users/user.entity';
 import { NotificationService } from 'src/notification/notification.service';
 
 
@@ -20,7 +20,7 @@ export class AuthService {
 
   
 
-    async register(body : Partial<UserDTO>): Promise<any>  {
+    private async register(body : Partial<UserDTO>): Promise<any>  {
        
         //check if email already exist
         const existingUser = await this.userService.findByEmail(body.email);
@@ -39,9 +39,18 @@ export class AuthService {
         };
     }
 
-    async logIn(email: string ,password:string): Promise<any> {
+    async registerCustomer(body : Partial<UserDTO>): Promise<any>  { 
+        return this.register(body) ;
+    }
 
+    async registerMerchant(body : UserMerchantDTO): Promise<any>  { 
+        return this.register(body) ;
+    }
+
+    async logIn(email: string ,password:string): Promise<any> {
+         // Find the user by their email address
         const user = await this.userService.findByEmail(email);
+        // If the user does not exist, return a 404 error
         if (!user) {
             throw new Error('Invalid credentials....');
         }
@@ -51,6 +60,11 @@ export class AuthService {
             // Envoyer un email de rappel pour confirmer l'adresse email
             // await this.notificationService.sendConfirmationLink(user, user.validationToken);
             throw new ForbiddenException('Veuillez confirmer votre adresse email avant de vous connecter');
+        }
+
+        // If the user exists but does not have a password set, prompt them to create one
+        if (!user.password) {
+             throw new ForbiddenException('Password not set. Please create a password.');
         }
 
         const passcomparaison = await bcrypt.compare(password, user.password) ;
@@ -63,6 +77,18 @@ export class AuthService {
         return  { accessToken: token, role: user.user_type} ;
     }
     
+    async setPassword(userId: number, body : AddPasswordDTO): Promise<UserDTO> // Define a POST endpoint for creating a new password
+    {
+        
+        if (body.password || body.confirm_password) {
+            if (body.password !== body.confirm_password) {
+                throw new UnprocessableEntityException('The passwords do not match.');
+            }
+        }
+        
+        return  await this.userService.addPassword( userId ,body.password); // Hachage du mot de passe
+    }
+      
 
     async generateAccessToken(userId: number, role: string) {
         const payload = { userId, role };

@@ -96,6 +96,51 @@ export class NotificationService {
             console.error(`Failed to send notification to ${email }:`, error);
         }
     }
+
+    async sendActivationEmail(user: User, is_test:boolean) : Promise<void> {
+       
+        const email = is_test ? 'harry.kouevi@gmail.com' : user.email ;
+        const url = `${AppSource.domain_url}/auth/set-password/${user.id}`;
+
+        const mailOptions = {
+            from:  `"${AppSource.company}" <no-reply@yourcompany.com> `, // Adresse de l'expéditeur
+            to: email  , // Adresse email du destinataire
+            subject: 'Activation de votre compte', // Ligne de sujet
+            text: `Bienvenue dans notre communauté ! 🎉
+
+                Nous sommes ravis de vous compter parmi nous. Pour finaliser la création de votre compte, il ne vous reste plus qu'à définir votre mot de passe.
+
+                Cliquez simplement sur le lien ci-dessous pour commencer : 
+                ${url}
+
+                Si vous avez des questions ou besoin d'aide, n'hésitez pas à nous contacter. Nous sommes là pour vous accompagner !
+
+                À très bientôt,  
+                L'équipe ${AppSource.company}`
+                ,
+            html: `
+                <h1>Bienvenue dans notre communauté ! 🎉</h1>
+                <p>Nous sommes ravis de vous compter parmi nous. Pour finaliser la création de votre compte, il ne vous reste plus qu'à définir votre mot de passe.</p>
+                
+                <p>Cliquez simplement sur le lien ci-dessous pour commencer :</p>
+                
+                <a href="${url}">Définir mon mot de passe</a>
+
+                <p>Si vous avez des questions ou besoin d'aide, n'hésitez pas à nous contacter. Nous sommes là pour vous accompagner !</p>
+
+                <p>À très bientôt,<br>L'équipe ${AppSource.company}</p>
+
+            `,
+        };
+
+        try {
+            await this.mailerService.sendMail(mailOptions);
+            console.log(`Notification sent to ${email }`);
+        } catch (error) {
+            console.error(`Failed to send notification to ${email }:`, error);
+        }
+    }
+
     sendErrorNotification(message: string) {
         // Ici, vous pouvez intégrer un service d'envoi d'e-mails ou autre
         console.log(`Notification: ${message}`);

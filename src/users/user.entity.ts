@@ -53,6 +53,9 @@ export class User {
   @Column({ nullable: true })
   address: string;
 
+  @Column({ nullable: true })
+  merchantId: number;
+
   @Column({ 
     default: Booli.NO,
   })
@@ -79,29 +82,121 @@ export class User {
 
 }
 
-export class registerBody {
-  email: string;
+export class AddPasswordDTO{
+  @IsNotEmpty()
+  @MinLength(6)
+  @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
   password: string; // Store hashed passwords
-  name: string;
-  firstname: string;
-  username: string;
-  cashback_account_balance: number;
 
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.CUSTOMER,
-  })
-  user_type : UserRole ;
-  date_of_birth: Date;
-  phone_number: string;
-  address: string;
+  @IsNotEmpty()
+  @MinLength(6)
+  confirm_password: string;
 }
 
 
 //DTO class that defines the structure of data and includes validation rules for User creation.
 export class UserDTO {
 
+  @IsOptional()
+  @IsBoolean()
+  is_test: boolean = false;
+
+  @IsNotEmpty() // Ensures the email field is not empty
+  @IsEmail() // Validates that the input is a valid email addres
+  email: string;
+
+  @IsNotEmpty() // Ensures the username field is not empty
+  username: string;
+
+  @IsOptional() // Ensures the name field is not empty
+  name: string;
+
+  @IsOptional()
+  firstname: string;
+
+  @IsOptional()
+  @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
+  password: string; // Store hashed passwords
+
+
+  @IsOptional()
+  confirm_password: string;
+
+  @IsOptional()
+  cashback_account_balance: number;
+
+  @IsNotEmpty() // Ensures the name field is not empty
+  @IsEnum(UserRole)
+  user_type : UserRole ;
+
+  @IsOptional()
+  @IsDateString() // Ensures the date field is a date
+  date_of_birth: Date;
+
+  @IsOptional()
+  phone_number: string;
+
+  @IsOptional()
+  address: string;
+
+  
+  @IsOptional()
+  merchantId: number;
+  
+}
+
+
+//DTO class that defines the structure of data and includes validation rules for User creation.
+export class UserCustomerDTO {
+
+  @IsOptional()
+  @IsBoolean()
+  is_test: boolean = false;
+  
+  @IsNotEmpty() // Ensures the email field is not empty
+  @IsEmail() // Validates that the input is a valid email addres
+  email: string;
+
+  @IsNotEmpty()
+  @MinLength(6)
+  @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
+  password: string; // Store hashed passwords
+
+  @IsNotEmpty()
+  @MinLength(6)
+  confirm_password: string;
+
+  @IsNotEmpty() // Ensures the username field is not empty
+  username: string;
+
+  @IsNotEmpty() // Ensures the name field is not empty
+  name: string;
+
+  @IsOptional()
+  firstname: string;
+
+  @IsOptional()
+  cashback_account_balance: number;
+
+  @IsNotEmpty() // Ensures the name field is not empty
+  @IsEnum(UserRole)
+  @Equals(UserRole['CUSTOMER'])
+  user_type : UserRole ;
+
+  @IsOptional()
+  @IsDateString() // Ensures the date field is a date
+  date_of_birth: Date;
+
+  @IsOptional()
+  phone_number: string;
+
+  @IsOptional()
+  address: string;
+  
+}
+
+
+export class UserMerchantDTO {
   @IsOptional()
   @IsBoolean()
   is_test: boolean = false;
@@ -119,6 +214,9 @@ export class UserDTO {
   @MinLength(6)
   confirm_password: string;
 
+  @IsNotEmpty() // Ensures the website_url field is not empty
+  website_url: string;
+
   @IsNotEmpty() // Ensures the username field is not empty
   username: string;
 
@@ -133,32 +231,28 @@ export class UserDTO {
 
   @IsNotEmpty() // Ensures the name field is not empty
   @IsEnum(UserRole)
+  @Equals(UserRole['MERCHANT'])
   user_type : UserRole ;
-
-  @IsNotEmpty()
-  @IsDateString() // Ensures the date field is a date
-  date_of_birth: Date;
 
   @IsOptional()
   phone_number: string;
 
   @IsOptional()
   address: string;
+  
 }
+
 
 //DTO class that defines the structure of data and includes validation rules for User creation.
 export class AdminUserDTO {
+
+  @IsOptional()
+  @IsBoolean()
+  is_test: boolean = false;
+  
   @IsNotEmpty() // Ensures the email field is not empty
   @IsEmail() // Validates that the input is a valid email addres
   email: string;
-
-  @IsNotEmpty()
-  @Exclude({ toPlainOnly: true }) // Exclude password when returning plain object
-  password: string; // Store hashed passwords
-
-  @IsNotEmpty()
-  @MinLength(6)
-  confirm_password: string;
 
   @IsNotEmpty() // Ensures the username field is not empty
   username: string;
@@ -171,10 +265,6 @@ export class AdminUserDTO {
   @IsEnum(UserRole)
   @Equals(UserRole['ADMINISTRATEUR'])
   user_type : UserRole ;
-
-  @IsOptional()
-  @IsDateString() // Ensures the date field is a date
-  date_of_birth: Date;
 
   @IsOptional()
   phone_number: string;

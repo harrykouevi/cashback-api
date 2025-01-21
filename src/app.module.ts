@@ -20,6 +20,7 @@ import { ProductModule } from './product/product.module';
 // import { RedisModule } from '@nestjs/redis'; // Importation du module Redis
 import { PromocodeModule } from './promocode/promocode.module';
 // import { RedisModule } from '@nestjs-modules/ioredis';
+import { MerchantModule } from './merchant/merchant.module';
 
 
 
@@ -47,7 +48,7 @@ import { PromocodeModule } from './promocode/promocode.module';
     CashbackModule,
     PaypalModule,// Importing the PaypalModule here
     StripeModule, NotificationModule, CategoriesModule, OrderModule,  PromocodeModule,// Importing the StripeModule here
-    ProductModule,
+    ProductModule, MerchantModule,
 
   ],
   controllers: [AppController],

@@ -8,6 +8,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
 import { Permission } from 'src/users/permission.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { MerchantModule } from '../merchant/merchant.module';
+import { UserModule } from 'src/users/user.module';
 
 
 @Module({
@@ -18,9 +20,10 @@ import { NotificationService } from 'src/notification/notification.service';
       secret: process.env.JWT_SECRET || 'yourSecretKey', // Change this to a strong secret key
       signOptions: { expiresIn: '1h' },
     }),
+    UserModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService,NotificationService] //,JwtAuthGuard
-  //exports: [JwtAuthGuard], // Exporting JwtAuthGuard for use in other modules
+  providers: [AuthService,NotificationService], //,JwtAuthGuard
+  exports: [AuthService], // Exporting JwtAuthGuard for use in other modules
 })
 export class AuthModule {}

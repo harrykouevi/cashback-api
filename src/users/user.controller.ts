@@ -52,9 +52,11 @@ export class UserController {
     @UseGuards(RoleGuard) // Appliquer les guards d'authentification et de rôle
     @Roles('admin') // Spécifier que seul un utilisateur avec le rôle 'merchant' peut accéder à cette route
     async createUser(@Body() body: AdminUserDTO) {
+        
+        let user = await  this.userService.addUser(body) ;
         return {
             statusCode: HttpStatus.OK,
-            data: await  this.userService.addUser(body) // Appel à la méthode du service pour mettre à jour l'utilisateur
+            data: user // Appel à la méthode du service pour mettre à jour l'utilisateur
         };
     }
 

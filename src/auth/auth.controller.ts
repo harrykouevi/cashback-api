@@ -1,6 +1,6 @@
-import { Controller, Post, Get, Body, Request, Query, UseGuards, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Request, Query, UseGuards, NotFoundException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { User , UserDTO } from '../users/user.entity';
+import { AddPasswordDTO, User , UserCustomerDTO, UserDTO, UserMerchantDTO, UserRole } from '../users/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Import the guard
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/guards/roles.decorator';
@@ -15,9 +15,31 @@ export class AuthController {
   ) {}
 
   @Post('register') // Endpoint to register a new user
-  async register(@Body() body: UserDTO) {
-    return this.authService.register(body);
+  async register(@Body() body: UserCustomerDTO) {
+    let user ;
+    if (body.user_type && body.user_type == UserRole.CUSTOMER ) {
+      user = await this.authService.registerCustomer(body);
+    }
+  
+    return user ;
   }
+
+
+  @Post('partner-register') // Endpoint to register a new user (merchant)
+  async register_(@Body() body: UserMerchantDTO) {
+    let user ;
+   
+    if (body.user_type && body.user_type == UserRole.MERCHANT ) {
+      user = await this.authService.registerMerchant(body);
+    }
+    return user ;
+  }
+
+  @Post('set-password/:id')// Define a POST endpoint for creating a new password
+  async setPassword(@Param('id') id: number, @Body() body: AddPasswordDTO) {
+    return this.authService.setPassword(id, body);
+  }
+
 
 
   @Post('login') // Endpoint for users to log in and receive a token

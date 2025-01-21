@@ -1,12 +1,14 @@
-import { Injectable , NotFoundException , UnprocessableEntityException } from '@nestjs/common';
+import { Injectable , Inject, forwardRef , NotFoundException , UnprocessableEntityException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository ,InjectConnection } from '@nestjs/typeorm';
 import { Repository,QueryFailedError , Connection } from 'typeorm';
-import { User , UserDTO, UserRole } from './user.entity';
+import { User , UserDTO, UserMerchantDTO, UserRole } from './user.entity';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Permission, rolePermissions } from './permission.entity';
 import { NotificationService } from '../notification/notification.service';
 import { randomBytes } from 'crypto';
+import { MerchantService } from 'src/merchant/merchant.service';
+import { CreateMerchantDTO } from 'src/merchant/merchant.entity';
 
 // import { MailerService } from '@nestjs-modules/mailer';
 
@@ -22,6 +24,9 @@ export class UserService {
         private permissionRepository: Repository<Permission>,
 
         private readonly notificationService: NotificationService,
+
+        @Inject(forwardRef(() => MerchantService))
+        private readonly merchantService: MerchantService,
         
     ) {}
 
@@ -83,6 +88,16 @@ export class UserService {
         return plainToInstance(UserDTO, user); // Return the found user entity Transform  to DTOs
     }
 
+    // Méthode pour trouver des utilisateurs en fonction de l'email
+    async findOneByParam(params: { [key: string]: any }): Promise<UserDTO> {
+        // Exécution de la recherche en utilisant le repository
+        const user = await this.usersRepository.findOne({ where: params  });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${params} not found`); // Throw an error if not found
+        }
+        return plainToInstance(UserDTO, user);
+    }
+
 
     // Méthode pour trouver un utilisateur par ID avec les permissions
     async findOneWithPermissions(id: number): Promise<User> {
@@ -122,34 +137,71 @@ export class UserService {
 
     }
 
+    private async hashPassword(password: string): Promise<string> {
+        return await bcrypt.hash(password, 10);
+    }
+
+    async addPassword(userId : number, password: string): Promise<UserDTO> {
+        let user = await this.findOneByParam({ id: userId, user_type: UserRole.ADMINISTRATEUR });
+        // Check if the user has a password set
+        if(user.password){
+            throw new ForbiddenException('password already exist.')
+        }
+
+        Object.assign(user, {password : await this.hashPassword(password)}); // Met à jour les propriétés de l'utilisateur avec les nouvelles données
+        // Sauvegarde les modifications dans la base de données
+        return await this.usersRepository.save(user); 
+    }
+      
+      
+
     
     // Méthode pour ajouter un utilisateur
-    async addUser(userData: Partial<UserDTO>) {
-        
-        if (userData.password !== userData.confirm_password) {
-            throw new UnprocessableEntityException('The passwords do not match.');
+    async addUser(userData: Partial<UserMerchantDTO | UserDTO>) {
+
+        if (userData.password || userData.confirm_password) {
+            if (userData.password !== userData.confirm_password) {
+                throw new UnprocessableEntityException('The passwords do not match.');
+            }
+            //encrypt and update the received password
+            const hashedPassword = await this.hashPassword(userData.password);
+            userData.password = hashedPassword ;
         }
-        //encrypt and update the received password
-        const hashedPassword = await bcrypt.hash(userData.password, 10);
-        userData.password = hashedPassword ;
-
-        // Assign permissions to the user
-        const permissionNames : string[] = this.getPermissionsForRoles(UserRole.ADMINISTRATEUR);
-
-        // Create the new user
-        let savedUser  = this.usersRepository.create(userData);
-        // newUser.validationToken = this.generateToken(); // Génération d'un token de validation
-        // let savedUser = await this.usersRepository.save(newUser );
-
-        
     
         try {
+            // Create the new user
+            let savedUser  = this.usersRepository.create(userData);
+           
+
             if(savedUser.user_type == UserRole.ADMINISTRATEUR){
-                //save into database
+                // get needed permissions
+                const permissionNames : string[] = this.getPermissionsForRoles(UserRole.ADMINISTRATEUR);
+                // Assign permissions to the user andsave into database
                 savedUser = await this.assignPermissions(permissionNames,savedUser) ;
+                // Envoi d'un email d'activation'
+                await this.notificationService.sendActivationEmail(savedUser,userData.is_test) ;
+      
             }
+          
+            if(savedUser.user_type == UserRole.MERCHANT){
+                
+                const  d = userData as UserMerchantDTO
+                const data: CreateMerchantDTO = {
+                    email: d.email,
+                    website_url: d.website_url,
+                    name: d.name,
+                    address:'somewhere'
+                };
+               
+                // Create the new merchant
+                const merchant = await this.merchantService.add(data)
+                Object.assign(savedUser, {'merchantId':merchant.id}); // Met à jour les propriétés de l'utilisateur avec les nouvelles données
+            }
+            // Sauvegarde les modifications dans la base de données
+            savedUser = await this.usersRepository.save(savedUser);
            
             return plainToInstance(UserDTO, savedUser);
+
         } catch (error) {
             // Check if the error is a QueryFailedError and contains a duplicate entry message
             if (error instanceof QueryFailedError && error.message.includes('duplicate key value violates unique constraint')) {
@@ -158,6 +210,9 @@ export class UserService {
             throw new UnprocessableEntityException(error.message)
         }   
     }
+
+    
+    
 
     async addUserGeneratedToken(user: Partial<User>): Promise<string>  {
  

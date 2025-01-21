@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner ,TableColumn} from "typeorm";
 
 export class AddNewColumnToUser1733322752319  implements MigrationInterface {
+    
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Check if the column already exists
         const table = await queryRunner.getTable("users");
