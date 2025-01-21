@@ -17,7 +17,7 @@ export const dataSourceOptions: DataSourceOptions = {
     username: 'tnhkyfvj_root',
     password: '#k7*eDbxvnEA2mB',
     database: 'tnhkyfvj_mqusutaa_cashback_dbd',
-    migrations: ['src/database/migrations/**/*{.js,.js}'],
+    migrations: ['dist/database/migrations/**/*{.js,.js}'],
     entities: [User,Permission,Order,OrderItem,Promocode,Product,Category,Merchant],
     // migrations: ['dist/db/migrations/*.js'], // Path to compiled migration files
     synchronize: false, // Disable auto-sync in production
