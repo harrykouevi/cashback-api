@@ -71,6 +71,7 @@ export class CategoriesService {
             //save into database
             await this.categoryRepository.save(category);
         } catch (error) {
+          
             // Check if the error is a QueryFailedError and contains a duplicate entry message
             if (error instanceof QueryFailedError && error.message.includes('duplicate key value violates unique constraint')) {
                 throw new UnprocessableEntityException('Email or Categoryname already exists'); // Return friendly error message

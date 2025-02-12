@@ -9,16 +9,18 @@ import { Product } from '../product/product.entity';
 import { OrderItem } from '../order/orderitem.entity';
 import { Category } from '../categories/category.entity';
 import { Merchant } from '../merchant/merchant.entity';
+import { GiftCard } from '../gift-card/gift-card.entity';
+
 
 export const dataSourceOptions: DataSourceOptions = {
     type: 'mysql', // or your database type (mysql, sqlite, etc.)
     host: 'localhost',
     port: 3306,
-    username: 'tnhkyfvj_root',
-    password: '#k7*eDbxvnEA2mB',
-    database: 'tnhkyfvj_mqusutaa_cashback_dbd',
-    migrations: ['dist/database/migrations/**/*{.js,.js}'],
-    entities: [User,Permission,Order,OrderItem,Promocode,Product,Category,Merchant],
+    username: 'root',
+    password: '',
+    database: 'cashback_dbd',
+    migrations: ['src/database/migrations/**/*{.js,.js}'],
+    entities: [User,Permission,Order,OrderItem,Promocode,Product,Category,Merchant,GiftCard],
     // migrations: ['dist/db/migrations/*.js'], // Path to compiled migration files
     synchronize: false, // Disable auto-sync in production
 };

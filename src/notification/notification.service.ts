@@ -7,7 +7,7 @@ import { User, UserDTO } from 'src/users/user.entity';
 
 @Injectable()
 export class NotificationService {
-    private transporter;
+    // private transporter;
 
     constructor(private readonly mailerService: MailerService) {}
 
